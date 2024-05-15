@@ -24,8 +24,8 @@ export class DemographicsService {
     static $inject = ['SqlService'];
 
     // SQL views to execute
-    private readonly DEMOGRAPHICS_FUNCTIONS = 'RQWlHLHAhnk'; //materialized
-    private readonly DEMOGRAPHICS_MAIN = 'A5MuhFdD9zq'; //materialized
+    private readonly DEMOGRAPHICS_FUNCTIONS = 'yScFNRSITtm'; 
+    private readonly DEMOGRAPHICS_MAIN = 'EA9VVZdAMJ3'; 
     
     constructor(private SqlService: SqlService){}
 

@@ -66,11 +66,11 @@ export class CreateVersion {
 
        // http://localhost:8989/dhis/api/sqlViews?paging=false&filter=displayName:eq:swap_versions&fields=id
 
-       await this.FilterResource.get({resource:'sqlViews', filter:'displayName:eq:swap_versions_materialized'})
+       await this.FilterResource.get({resource:'sqlViews', filter:'displayName:eq:swap_versions'})
              .$promise.then(data =>{ 
              this.swap_versions_id=data.sqlViews[0].id;
        });
-       await this.FilterResource.get({resource:'sqlViews', filter:'displayName:eq:set_resources_public_to_private_materialized'})
+       await this.FilterResource.get({resource:'sqlViews', filter:'displayName:eq:set_resources_public_to_private'})
        .$promise.then(data =>{ 
        this.set_resources_public_to_private_id=data.sqlViews[0].id;
         });
