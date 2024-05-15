@@ -22,11 +22,12 @@ import { AvailableDataItem } from '../../model/model';
 
 export class AnalyticsService {
 
-    static $inject = ['$q', '$interval', 'AnalyticsEngine', 'Analytics', 'DataMart', 'ValidationService'];
+    static $inject = ['$q', '$interval', 'OrgunitService', 'AnalyticsEngine', 'Analytics', 'DataMart', 'ValidationService'];
 
     constructor(
         private $q: ng.IQService,
         private $interval: ng.IIntervalService,
+        private OrgunitService,
         private AnalyticsEngine,
         private Analytics,
         private DataMart,
@@ -51,13 +52,13 @@ export class AnalyticsService {
 
     private buildAnalyticsParameters(orgunit, period, filters): AnalyticsParameters {
 
-        var orgunits = "";
+     var orgunits = "";
         if (orgunit instanceof Array) {
             orgunits = orgunit.map((value, index, array) => value.id).join(";")
         } else {
             orgunits = orgunit.id;
         }
-
+   
         // Build dimension parameter
         var parameters: AnalyticsParameters = {
             dimension: [
@@ -104,24 +105,30 @@ export class AnalyticsService {
      * @param hierarchy - hierarchy arrya, like ["fiasdfl3fj","aldfkjlskf"] (parents). Only applicable if isRoot == false
      * @returns {*} - Result data structure
      */
-    formatAnalyticsResult(analytics, orgunitsInfo, hierarchy, valuesDatastore): AvailableDataItem[] {
+    formatAnalyticsResult(analytics, orgunitsInfo, hierarchy, names, valuesDatastore): AvailableDataItem[] {
         let orgunits: { [key: string]: AvailableDataItem } = {};
 
         var noValidatedPeriod = false;
 
+       
         angular.forEach(analytics.metaData.dimensions.ou, (orgunit) => {
-            var fullName = hierarchy.map((parent) => analytics.metaData.items[parent].name).join("/");
-
+        
+         var fullName=names.join("/");
+         
             if (fullName == "") fullName = fullName.concat(analytics.metaData.items[orgunit].name);
             else fullName = fullName.concat("/" + analytics.metaData.items[orgunit].name);
 
             fullName = fullName.replace(/\ /g, "_");
+          //  console.log("fullName");
+          //  console.log(fullName);
+
 
             orgunits[orgunit] = {
                 id: orgunit,
                 name: analytics.metaData.items[orgunit].name,
                 fullName: fullName,
                 parents: hierarchy,
+                parentsNames: names,
                 level: orgunitsInfo[orgunit].level,
                 relativeLevel: hierarchy.length,
                 isLastLevel: orgunitsInfo[orgunit].children.length === 0,
@@ -158,7 +165,7 @@ export class AnalyticsService {
         resp.$promise.then(
             data =>{
             analytics_id=data.response.id;
-          console.log(analytics_id);
+         // console.log(analytics_id);
             }
         );
         
@@ -186,26 +193,17 @@ export class AnalyticsService {
 
                     
                   }
-                  /*
-                    values[0]=data[Object.keys(data)[0]][0];
-                    values[1]=data[Object.keys(data)[1]][0];
-                    values[2]=data[Object.keys(data)[2]][0];
-                    values[3]=data[Object.keys(data)[3]][0];
-                    */
+                 
 
                    values.sort((a, b) => (a.time <= b.time) ? 1 : -1);
                   
 
                    var id=values[0].id;
 
-                   //console.log("Values");
-                   //console.log(data[id]);
+                 
                    if (executed!=true) {
                    for (var i2 =data[id].length-1; i2>0; i2--) {
                     deferred.notify(data[id][i2]);
-                    //previousMessage = data[id][i2].message;
-                    //console.log("NOTIFICADO");
-                    //console.log(data[id][i2]);
                     executed=true;                    
                   }}
 

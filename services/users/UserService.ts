@@ -33,7 +33,7 @@ export class UserService {
     private currentUserTree;
     private currentUserFields = {
         fields: "id,name,userCredentials[username,userRoles[id,name]],userGroups[id,name]" +
-            "organisationUnits[id,level,name,children[id,name]],dataViewOrganisationUnits[id,level,children[id,level,children]]"
+            "organisationUnits[id,level,name,children[id,name]],dataViewOrganisationUnits[id,name,level,children[id,name,level,children]]"
     };
     
     getCurrentUser(): ng.IPromise<CurrentUser> {

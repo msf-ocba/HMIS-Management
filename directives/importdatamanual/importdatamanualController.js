@@ -326,11 +326,12 @@ var importdatamanualController = ["$scope","$interval","$http","$filter","common
           transformRequest: {}
         }).then(
           httpResponse => {
-			 // console.log(httpResponse.data.status);
+            console.log("httpResponse");
+			  console.log(httpResponse.data);
 			  if (httpResponse.data.status!="ERROR" ) {
-			  $scope.generateSummary(httpResponse.data);
+			  $scope.generateSummary(httpResponse.data.response);
             $scope.summaryDisplayed = true;
-            logDataimport($file.name, httpResponse.data);
+            logDataimport($file.name, httpResponse.data.response);
             $scope.dataImportStatus.type = "success";
             $scope.dataImportStatus.active = false;
 			      //$scope.analyticsStatus.visible = true;
