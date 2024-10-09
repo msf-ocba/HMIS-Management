@@ -135,7 +135,7 @@ export class CreateVersion {
         this.result += "Executed SqlQuery swap_versions \n";
         await this.SqlService.refreshSqlQuery(this.swap_versions_id);
         await this.SqlService.executeSqlQuery(this.swap_versions_id);
-git a
+
         await this.$http({
             method: "POST",
             url: remoteSettings.api + 'maintenance?cacheClear=true',
