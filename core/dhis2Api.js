@@ -292,7 +292,7 @@ Dhis2Api.factory("SqlView",['$resource', 'commonvariable', function($resource, c
 }]);
 
 Dhis2Api.factory("SqlViewData",['$resource', 'commonvariable', function($resource, commonvariable) {
-	return $resource( commonvariable.url + "sqlViews/:id/data.json?paging=false",
+	return $resource( commonvariable.url + "29/sqlViews/:id/data.json?paging=false",
 		{id:'@id'});
 }]);
 

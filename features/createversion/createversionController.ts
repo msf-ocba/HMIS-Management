@@ -90,11 +90,13 @@ export class CreateVersion {
 
         await this.$http({
             method: "POST",
-            url: remoteSettings.api + 'maintenance/cacheClear',
+            url: remoteSettings.api + '40/maintenance?cacheClear=true',
 
         });
+       
 
         this.result += "Executed cache clear\n";
+        
 
         await this.$http({
             method: "POST",
@@ -115,6 +117,7 @@ export class CreateVersion {
         await this.$http({
             method: "POST",
             url: remoteSettings.api + 'metadata/version/create?type=BEST_EFFORT',
+            
 
             headers: {
                 Authorization: remoteSettings.loggerAuth
@@ -129,13 +132,21 @@ export class CreateVersion {
             });
 
 
-
-
         this.result += "Executed SqlQuery swap_versions \n";
         await this.SqlService.refreshSqlQuery(this.swap_versions_id);
         await this.SqlService.executeSqlQuery(this.swap_versions_id);
+git a
+        await this.$http({
+            method: "POST",
+            url: remoteSettings.api + 'maintenance?cacheClear=true',
+            headers: {
+                Authorization: remoteSettings.loggerAuth
+            },
 
+        });
 
+        this.result += "Executed cache clear\n";
+        
 
     }
 
