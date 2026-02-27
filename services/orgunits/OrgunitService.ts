@@ -44,4 +44,14 @@ export class OrgunitService {
         }
         return this.Organisationunit.get(params).$promise.then( result => result.organisationUnits);
     }
+
+    getOrgUnitName(id) {
+        const fields = "id,name,level";
+        const params = {
+            filter: ["id:eq:"+id],
+            fields: `${fields}`
+        }
+        return this.Organisationunit.get(params).$promise.then( result => result.organisationUnits);
+    }
+
 }

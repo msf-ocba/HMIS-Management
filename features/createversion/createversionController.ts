@@ -83,17 +83,20 @@ export class CreateVersion {
 
     console.log("set_resources_public_to_private_id: "+this.set_resources_public_to_private_id);
     console.log("versions_id: "+this.versions_id);
+        await this.SqlService.refreshSqlQuery(this.set_resources_public_to_private_id);
         await this.SqlService.executeSqlQuery(this.set_resources_public_to_private_id);
         this.result = "Executed SqlQuery set_resources_public_to_private. Preparing Version\n";
 
 
         await this.$http({
             method: "POST",
-            url: remoteSettings.api + 'maintenance/cacheClear',
+            url: remoteSettings.api + '40/maintenance?cacheClear=true',
 
         });
+       
 
         this.result += "Executed cache clear\n";
+        
 
         await this.$http({
             method: "POST",
@@ -114,6 +117,7 @@ export class CreateVersion {
         await this.$http({
             method: "POST",
             url: remoteSettings.api + 'metadata/version/create?type=BEST_EFFORT',
+            
 
             headers: {
                 Authorization: remoteSettings.loggerAuth
@@ -128,12 +132,21 @@ export class CreateVersion {
             });
 
 
-
-
         this.result += "Executed SqlQuery swap_versions \n";
+        await this.SqlService.refreshSqlQuery(this.swap_versions_id);
         await this.SqlService.executeSqlQuery(this.swap_versions_id);
 
+        await this.$http({
+            method: "POST",
+            url: remoteSettings.api + 'maintenance?cacheClear=true',
+            headers: {
+                Authorization: remoteSettings.loggerAuth
+            },
 
+        });
+
+        this.result += "Executed cache clear\n";
+        
 
     }
 

@@ -87,7 +87,8 @@ export class AvailableData {
 	showValidationDatastore() {
 
 		if (this.datastoredRead == false) {
-            const _periodStructurePromise = this.SqlService.executeSqlCode("SELECT iso, monthly, quarterly FROM _periodstructure");
+            //const _periodStructurePromise = this.SqlService.executeSqlCode("SELECT iso, monthly, quarterly FROM _periodstructure");
+			const _periodStructurePromise = this.SqlService.executeSqlQuery("LffOWFcjVkZ");
 			return this.$q.all([this.ValidationService.fillDatastore(), _periodStructurePromise]).then( response  => {
 				
                 const _periodStructure = this.formatPeriodStructure(response[1].listGrid.rows);
@@ -195,6 +196,7 @@ export class AvailableData {
 		// Initialize common variables
 		this.tableRows = [];
 		this.orgunitsInfo = {};
+		
 
 		// Initialize visibility of table and progressBar
 		this.tableDisplayed = false;
@@ -207,6 +209,15 @@ export class AvailableData {
 			var currentOu = 0;
 			angular.forEach(dataViewOrgUnits, dataViewOrgUnit => {
 				var parentPromise = this.AnalyticsService.queryAvailableData(dataViewOrgUnit, this.selectedPeriod, this.selectedFilters);
+				//console.log("dataViewOrgUnit");
+				//console.log(dataViewOrgUnit);
+
+			//	var parent={ id: dataViewOrgUnit.id, level: dataViewOrgUnit.level, children: []}
+		
+				//dataViewOrgUnit.children.push(parent); // DHIS2 40.3
+			//	console.log("children_and_parent");
+			//	console.log(dataViewOrgUnit.children);
+
 				var childrenPromise = this.AnalyticsService.queryAvailableData(dataViewOrgUnit.children, this.selectedPeriod, this.selectedFilters);
 
 				// Add orgunits to orgunitsInfo. That info will be required later.
@@ -223,8 +234,8 @@ export class AvailableData {
 
 						
 
-						const parentRows = this.AnalyticsService.formatAnalyticsResult(parentResult, this.orgunitsInfo, [], this.valuesDatastore);
-						const childrenRows = this.AnalyticsService.formatAnalyticsResult(childrenResult, this.orgunitsInfo, [dataViewOrgUnit.id], this.valuesDatastore);
+						const parentRows = this.AnalyticsService.formatAnalyticsResult(parentResult, this.orgunitsInfo, [],[], this.valuesDatastore);
+						const childrenRows = this.AnalyticsService.formatAnalyticsResult(childrenResult, this.orgunitsInfo, [dataViewOrgUnit.id],  [dataViewOrgUnit.name], this.valuesDatastore);
 						this.tableRows = this.tableRows.concat(parentRows).concat(childrenRows);
 						//console.log("TableRows");
 						//console.log(this.tableRows);
@@ -301,10 +312,11 @@ export class AvailableData {
 
 		var childrenInfo = this.Organisationunit.get({
 			paging: false,
-			fields: "id,name,level,children",
+			fields: "id,name,level,children[id,name,level]",
 			filter: "id:in:[" + this.orgunitsInfo[orgunit.id].children.map(child => child.id).join(",") + "]"
 		}).$promise;
-
+//console.log("childrenInfo");
+//console.log(childrenInfo);
 		var childrenQuery = this.AnalyticsService.queryAvailableData(this.orgunitsInfo[orgunit.id].children, this.selectedPeriod,
 			this.selectedFilters);
 
@@ -320,8 +332,12 @@ export class AvailableData {
 				var childrenResult = data[1];
 				var childrenHierarchy = orgunit.parents.slice(0);
 				childrenHierarchy.push(orgunit.id);
-				var childrenRows = this.AnalyticsService.formatAnalyticsResult(childrenResult, this.orgunitsInfo, childrenHierarchy, this.valuesDatastore);
+				var childrenHierarchyNames = orgunit.parentsNames.slice(0);
+				childrenHierarchyNames.push(orgunit.name);
+				var childrenRows = this.AnalyticsService.formatAnalyticsResult(childrenResult, this.orgunitsInfo, childrenHierarchy,childrenHierarchyNames, this.valuesDatastore);
 				this.tableRows = this.tableRows.concat(childrenRows);
+				//
+				//console.log("TableRows");
 				//console.log(this.tableRows);
 			})
 			.finally(() => {

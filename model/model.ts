@@ -140,6 +140,7 @@ export class AvailableDataItem {
         public name: string,
         public fullName: string,
         public parents: string[],
+        public parentsNames: string[],
         public level: number,
         public relativeLevel: number,
         public isLastLevel: boolean,
@@ -173,7 +174,7 @@ export class CurrentUser {
         public userCredentials: {username:string,usernameid: string, userRoles: IdName[]},
         public userGroups: IdName[],
         public organisationUnits: OrgunitExtended[],
-        public dataViewOrganisationUnits: {id: string, level: number, children:{id: string, level: number, children: string[]}[]}[]
+        public dataViewOrganisationUnits: {id: string, name:string, level: number, children:{id: string, level: number, children: string[]}[]}[]
     ){}
 }
 

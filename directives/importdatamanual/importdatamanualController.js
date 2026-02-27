@@ -110,6 +110,7 @@ var importdatamanualController = ["$scope","$interval","$http","$filter","common
 	  }
 	  
 	  var isMFP= await UserService.currentUserHasRole("Medical Focal Point");
+    var isMFP = isMFP ||  await UserService.currentUserHasRole("Position: Medical Focal Point");
 	  var user= await UserService.getCurrentUser();
 
 	  var serverName=user.userCredentials.username.split("-")[1];
@@ -325,11 +326,12 @@ var importdatamanualController = ["$scope","$interval","$http","$filter","common
           transformRequest: {}
         }).then(
           httpResponse => {
-			 // console.log(httpResponse.data.status);
+            console.log("httpResponse");
+			  console.log(httpResponse.data);
 			  if (httpResponse.data.status!="ERROR" ) {
-			  $scope.generateSummary(httpResponse.data);
+			  $scope.generateSummary(httpResponse.data.response);
             $scope.summaryDisplayed = true;
-            logDataimport($file.name, httpResponse.data);
+            logDataimport($file.name, httpResponse.data.response);
             $scope.dataImportStatus.type = "success";
             $scope.dataImportStatus.active = false;
 			      //$scope.analyticsStatus.visible = true;

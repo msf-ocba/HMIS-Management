@@ -292,9 +292,15 @@ Dhis2Api.factory("SqlView",['$resource', 'commonvariable', function($resource, c
 }]);
 
 Dhis2Api.factory("SqlViewData",['$resource', 'commonvariable', function($resource, commonvariable) {
-	return $resource( commonvariable.url + "sqlViews/:id/data.json?paging=false",
+	return $resource( commonvariable.url + "29/sqlViews/:id/data.json?paging=false",
 		{id:'@id'});
 }]);
+
+Dhis2Api.factory("SqlViewRefresh",['$resource', 'commonvariable', function($resource, commonvariable) {
+	return $resource( commonvariable.url + "sqlViews/:id/refresh",
+		{id:'@id'}, {post: {method: "POST"}});
+}]);
+
 
 Dhis2Api.factory("OrganisationUnitGroupSet",['$resource','commonvariable', function ($resource,commonvariable) {
 	return $resource( commonvariable.url+"organisationUnitGroupSets/:groupsetid",
@@ -353,7 +359,7 @@ Dhis2Api.factory("Events",['$resource', 'commonvariable', function ($resource, c
 Dhis2Api.factory("TrackedEntityInstances",['$resource', 'commonvariable', function ($resource, commonvariable) {
 	return $resource( commonvariable.url + "trackedEntityInstances/:uid",
 		{
-			fields:':all,attributes[attribute,value,created]'
+			fields:'*,attributes[attribute,value,created]'
 		} );
 }]);
 
