@@ -36,30 +36,68 @@ class MenuController {
 
 	isOnline: boolean;
     isAdministrator: boolean = false;
+    isHMISOfficerGroup: boolean = false;
+    showMetadataImport: boolean = false;
     showDataImport: boolean = false;
+    showDataExport: boolean = false;
     showTrackerExport: boolean = false;
     showTrackerImport: boolean = false;
     showValidation: boolean = false;
+    showMetadataMonitor: boolean = false;
+    showCreateVersion: boolean = false;
+    showProject: boolean=false;
+    showCapital: boolean=false;
+    isOffline:boolean=false;
+    showValidationRequest: boolean=false;
+    dhisUrl = window.location.href.split('api/apps/')[0];
 
     constructor(private commonvariable: CommonVariable, 
                 private UserService: UserService) {}
+    goHome = function(){
+                    window.location.replace(this.dhisUrl);
+              };
 
     $onInit() {
-        this.isOnline = this.commonvariable.isOnline;
         
         this.UserService.getCurrentUser().then(me => {
-            const isMedco = me.userCredentials.userRoles.some(role => role.name == 'MedCo');
-            const isTESACO = me.userCredentials.userRoles.some(role => role.name == 'TesaCo');
-            const isMFP = me.userCredentials.userRoles.some(role => role.name == 'Medical Focal Point')
-            const hasTrackerRoles = me.userCredentials.userRoles.some(role => /Individual Data/i.test(role.name));
-
-            this.isAdministrator = me.userGroups.some(group => group.name == 'Administrators');
-
-            this.showDataImport = this.isAdministrator || isMedco || isMFP;
-            this.showValidation = this.isOnline && (this.isAdministrator || isMedco || isTESACO);
+            this.isOnline = this.commonvariable.isOnline;
+            this.isOffline = !this.isOnline;
+            const isMedco = me.userCredentials.userRoles.some(role => role.name == 'MedCo' || role.name == 'Position: MedCo');
+            const isTESACO = me.userCredentials.userRoles.some(role => role.name == 'TesaCo' || role.name=='Position: TesaCo');
+            const isMFP = me.userCredentials.userRoles.some(role => role.name == 'Medical Focal Point' || role.name=='Position: Medical Focal Point');
             
-            this.showTrackerExport = this.isAdministrator || (isMFP && hasTrackerRoles);
-            this.showTrackerImport = this.isAdministrator || isMedco;
+            //const hasTrackerRoles = me.userCredentials.userRoles.some(role => /Individual Data/i.test(role.name));
+            
+            const hasTrackerRoles = me.userCredentials.userRoles.some(role =>role.name == 'Exportation Individual data' || role.name=='HMIS Management: Export tracker data');
+            
+
+
+
+            const isHMISOfficer = me.userCredentials.userRoles.some(role => role.name == 'HMIS Officer' || role.name=='Position: HMIS Officer');
+            const isSuperUser = me.userCredentials.userRoles.some(role => role.name == 'Superuser' || role.name=='Position: Superuser');
+            const isOnlineDataSync = me.userCredentials.userRoles.some(role => role.name == 'Online Data Sync' || role.name=='HMIS Management: Aggregated Data Sync');
+ 
+           
+            this.isAdministrator = me.userGroups.some(group => group.name == 'Administrators');
+            this.isHMISOfficerGroup = me.userGroups.some(group => group.name == 'HMIS Officers');
+           
+           
+            this.showMetadataImport = isSuperUser || (this.isOffline && ( this.isAdministrator || isOnlineDataSync));
+            this.showDataImport =  isSuperUser || this.isAdministrator || isMedco || (isMFP && this.isOffline );
+            this.showValidation =   isSuperUser || (this.isOnline && ( this.isAdministrator || isMedco || isTESACO)) ;
+            this.showDataExport =  isSuperUser || this.isAdministrator || (isMFP && this.isOffline);
+            
+            this.showValidationRequest =  isMFP && this.isOnline;
+
+            
+            this.showTrackerExport =  isSuperUser || this.isAdministrator || (isMFP && hasTrackerRoles && this.isOffline);
+            this.showTrackerImport =  isSuperUser || this.isAdministrator || isMedco || (isMFP && hasTrackerRoles && this.isOffline);
+            this.showCapital =  isSuperUser || this.showDataImport  || this.showTrackerImport || this.showValidation;
+            this.showProject =   isSuperUser || this.showDataExport || this.showTrackerExport || this.showMetadataImport || this.showValidationRequest;
+            this.showMetadataMonitor =  isSuperUser || this.isAdministrator || isHMISOfficer || this.isHMISOfficerGroup;
+            this.showCreateVersion =  isSuperUser;
+
+
         });
     }
 }

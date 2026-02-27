@@ -18,17 +18,21 @@
  along with Project Manager.  If not, see <http://www.gnu.org/licenses/>. */
 
 import { UserService } from '../../services/services.module';
-import { AttributeValue, Orgunit, Program, ServiceWithPrograms } from '../../model/model';
+import { AttributeValue, Orgunit, Program, Job, ServiceWithPrograms } from '../../model/model';
 
 export class ProgramService {
 
-    static $inject = ['UserService', 'Organisationunit', 'OrganisationUnitGroup', 'Programs'];
+    static $inject = ['UserService', 'Organisationunit', 'OrganisationUnitGroup', 'Programs', 'Jobs','JobConfigurations', 'JobExecute'];
 
     constructor(
         private UserService: UserService,
         private Organisationunit,
         private OrganisationUnitGroup,
-        private Programs
+        private Programs,
+        private Jobs,
+        private JobConfigurations,
+        private JobExecute
+        
     ){}
 
     readonly serviceCodeId = "pG4YeQyynJh";
@@ -47,7 +51,7 @@ export class ProgramService {
         const queryParams = {
             filter: orgunits.map( orgunit => 'path:like:' + orgunit.id ),
             rootJunction: 'OR',
-            fields: 'programs[id,attributeValues]'
+            fields: 'programs[id,name,attributeValues]'
         };
 
         return this.Organisationunit.get(queryParams).$promise.then( data => {
@@ -96,6 +100,19 @@ export class ProgramService {
         var fields = "id,displayName~rename(name),programStages[id,displayName~rename(name)]";
         return this.Programs.get({uid: programId, fields: fields}).$promise;
     }
+    programSync(jobId: string): ng.IPromise<Job>{
+    
+        return this.JobExecute.get({uid: jobId}).$promise;
+    }
+    getJobId(name: string): ng.IPromise<any>{
+    name="displayName:like:"+name;
+        return this.JobConfigurations.get({name: "", filter: name}).$promise;
+    }
+
+    jobs(jobId: string): ng.IPromise<any>{
+        
+        return this.Jobs.get({uid: jobId}).$promise;
+        }
     
 }
 

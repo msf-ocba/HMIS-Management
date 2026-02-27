@@ -7,6 +7,7 @@ module.exports = {
     entry: './app.js',
     output: {
         filename: 'bundle.js',
+        //filename: '[name].[chunkhash].js',
         path: path.resolve(__dirname, 'dist')
     },
     plugins: [
@@ -37,11 +38,13 @@ module.exports = {
                 test: /\.css$/,
                 use: [ 'style-loader', 'css-loader' ]
             },
+            
             {
                 test: /\.ts?$/,
                 use: [ 'babel-loader?presets[]=es2015', 'ts-loader' ],
                 exclude: /node_modules/
             },
+            
             {
                 test: /\.html$/,
                 use: [ {

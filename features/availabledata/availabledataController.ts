@@ -86,58 +86,39 @@ export class AvailableData {
 
 	showValidationDatastore() {
 
-		if (this.datastoredRead == false && this.isOnline) {
-			return this.ValidationService.fillDatastore().then(()=>{
-			return this.ValidationService.readDatastore().then(
-				data => {
+		if (this.datastoredRead == false) {
+            //const _periodStructurePromise = this.SqlService.executeSqlCode("SELECT iso, monthly, quarterly FROM _periodstructure");
+			const _periodStructurePromise = this.SqlService.executeSqlQuery("LffOWFcjVkZ");
+			return this.$q.all([this.ValidationService.fillDatastore(), _periodStructurePromise]).then( response  => {
+				
+                const _periodStructure = this.formatPeriodStructure(response[1].listGrid.rows);
+				//console.log("Period Structure");
+				//console.log(_periodStructure);
+				return this.ValidationService.readDatastore().then( data => {
+                    angular.forEach(data.datasets, dataset => {
 
-					angular.forEach(data.datasets, dataset => {
+                        if (!(this.valuesDatastore[dataset.missionId] instanceof Array)) { this.valuesDatastore[dataset.missionId] = [] }
+                        if (!(this.valuesDatastore[dataset.siteId]! instanceof Array)) { this.valuesDatastore[dataset.siteId] = [] }
+                        if (!(this.valuesDatastore[dataset.project]! instanceof Array)) { this.valuesDatastore[dataset.project] = [] }
+                        if (!(this.valuesDatastore[dataset.service]! instanceof Array)) { this.valuesDatastore[dataset.service] = [] }
+                        if (!(this.valuesDatastore['zOyMxdCLXBM']! instanceof Array)) { this.valuesDatastore['zOyMxdCLXBM'] = [] }
+                        if (!(this.valuesDatastore['G7g4TvbjFlX']! instanceof Array)) { this.valuesDatastore['G7g4TvbjFlX'] = [] }
 
-						if (!(this.valuesDatastore[dataset.missionId] instanceof Array)) { this.valuesDatastore[dataset.missionId] = [] }
-						if (!(this.valuesDatastore[dataset.siteId]! instanceof Array)) { this.valuesDatastore[dataset.siteId] = [] }
-						if (!(this.valuesDatastore[dataset.project]! instanceof Array)) { this.valuesDatastore[dataset.project] = [] }
-						if (!(this.valuesDatastore[dataset.service]! instanceof Array)) { this.valuesDatastore[dataset.service] = [] }
-						if (!(this.valuesDatastore['zOyMxdCLXBM']! instanceof Array)) { this.valuesDatastore['zOyMxdCLXBM'] = [] }
-						if (!(this.valuesDatastore['G7g4TvbjFlX']! instanceof Array)) { this.valuesDatastore['G7g4TvbjFlX'] = [] }
+                        const _periodRow = _periodStructure[dataset.period];
 
-						this.SqlService.executeSqlCode("SELECT distinct(monthly) FROM _dateperiodstructure WHERE quarterly='" + dataset.period + "' OR weekly='" + dataset.period + "'")
-						
-						.then(data => {
-							
-							angular.forEach(data.rows, row => {
+                        this.fillValuesDatastore(dataset, dataset.period, "");
+						if (_periodRow) {
 
-								if (row != undefined) {
-
-									this.fillValuesDatastore(dataset, row,"months");
-
-
-								}
-							});
-					});
-					this.SqlService.executeSqlCode("SELECT distinct(quarterly) FROM _dateperiodstructure WHERE monthly='" + dataset.period + "' OR weekly='" + dataset.period + "'")
-						
-						.then(data => {
-							angular.forEach(data.rows, row => {
-
-								if (row != undefined) {
-
-									this.fillValuesDatastore(dataset, row,"months");
-
-
-								}
-							});
-					});
-
-
-
-						this.fillValuesDatastore(dataset, dataset.period,"");
-
-
-					});
-					this.datastoredRead = true;
-				}
-			
-			)
+						if (_periodRow.monthly ) {
+                            this.fillValuesDatastore(dataset, _periodRow.monthly, "months");
+                        }
+                        if (_periodRow.quarterly ) {
+                            this.fillValuesDatastore(dataset, _periodRow.quarterly, "quarters");
+						}
+					}
+                    });
+                    this.datastoredRead = true;
+				})
 			})
 		}
 	}
@@ -153,7 +134,28 @@ export class AvailableData {
 		this.valuesDatastore['zOyMxdCLXBM']["'" + period + "'"] = true;
 		this.valuesDatastore['G7g4TvbjFlX']["'" + period + "'"] = true;
 
-	}
+    }
+    
+    /**
+    * This method expects an array of objects arrays like
+    * [
+    *    [iso, monthly, quarterly],
+    *    ["2017W02", "201701", "2017Q1"],
+    * ]
+    *
+    */ 
+    formatPeriodStructure (rows: string[][]) {
+		let _str = {};
+		rows.forEach( period => {
+            _str[period[0]] = {
+                monthly: period[1],
+                quarterly: period[2]
+            }
+		}
+		
+		);
+        return _str;
+    }
 
 /*
 	fillValuesDatastore_months(dataset, period) {
@@ -194,6 +196,7 @@ export class AvailableData {
 		// Initialize common variables
 		this.tableRows = [];
 		this.orgunitsInfo = {};
+		
 
 		// Initialize visibility of table and progressBar
 		this.tableDisplayed = false;
@@ -206,6 +209,15 @@ export class AvailableData {
 			var currentOu = 0;
 			angular.forEach(dataViewOrgUnits, dataViewOrgUnit => {
 				var parentPromise = this.AnalyticsService.queryAvailableData(dataViewOrgUnit, this.selectedPeriod, this.selectedFilters);
+				//console.log("dataViewOrgUnit");
+				//console.log(dataViewOrgUnit);
+
+			//	var parent={ id: dataViewOrgUnit.id, level: dataViewOrgUnit.level, children: []}
+		
+				//dataViewOrgUnit.children.push(parent); // DHIS2 40.3
+			//	console.log("children_and_parent");
+			//	console.log(dataViewOrgUnit.children);
+
 				var childrenPromise = this.AnalyticsService.queryAvailableData(dataViewOrgUnit.children, this.selectedPeriod, this.selectedFilters);
 
 				// Add orgunits to orgunitsInfo. That info will be required later.
@@ -222,10 +234,11 @@ export class AvailableData {
 
 						
 
-						const parentRows = this.AnalyticsService.formatAnalyticsResult(parentResult, this.orgunitsInfo, [], this.valuesDatastore);
-						const childrenRows = this.AnalyticsService.formatAnalyticsResult(childrenResult, this.orgunitsInfo, [dataViewOrgUnit.id], this.valuesDatastore);
+						const parentRows = this.AnalyticsService.formatAnalyticsResult(parentResult, this.orgunitsInfo, [],[], this.valuesDatastore);
+						const childrenRows = this.AnalyticsService.formatAnalyticsResult(childrenResult, this.orgunitsInfo, [dataViewOrgUnit.id],  [dataViewOrgUnit.name], this.valuesDatastore);
 						this.tableRows = this.tableRows.concat(parentRows).concat(childrenRows);
-
+						//console.log("TableRows");
+						//console.log(this.tableRows);
 
 						// Make visible orgunits under dataViewOrgunit
 						this.orgunitsInfo[dataViewOrgUnit.id].clicked = true;
@@ -243,51 +256,39 @@ export class AvailableData {
 	private regenerateScopePeriodArray(analyticsResponse) {
 		this.periods = analyticsResponse.metaData.dimensions.pe.map(period => {
 
-
 			//var sql = "select  monthly, count(*) from ( select  distinct(monthly, weekly) as mo, weekly, monthly  from _dateperiodstructure where monthly='" + period + "' ) as M  group by monthly;"
 			var weeks = null;
 			//this.sqlService.executeSqlView(sql).then(data => {
 
-weeks=this.calculteWeeks(period);
+            weeks=this.calculteWeeks(period);
 				//weeks = data.rows[0][1];
 				
-
-				return {
-					id: period,
-					weeks: weeks,
-					name: analyticsResponse.metaData.items[period].name // + " " + weeks
-				}
-			//});
-		}
-		);
-
-	}
-calculteWeeks(period) {
-
-var year=period.substr(0, 4);
-var month=period.substr(4,2);
-var weeks=this.getThursdaysInMonth(month, year);
-return weeks;
-
-}
-
-
-getThursdaysInMonth(month, year) {
-  var thursdays = 0;
-	var numOfDays = new Date(year, month, 0).getDate();
-
-for(var i=0;i<numOfDays;i++)
-{
+        	return {
+				id: period,
+                weeks: weeks,					
+                name: analyticsResponse.metaData.items[period].name // + " " + weeks
+			}
+		});
+    }
     
-	if (new Date(year,month-1,i+1).getDay()==4) { thursdays+=1;} //4 = thursday        
-}
+    calculteWeeks(period) {
+        var year = period.substr(0, 4);
+        var month = period.substr(4,2);
+        var weeks = this.getThursdaysInMonth(month, year);
+        return weeks;
+    }
 
-     
-	
-   
-     
-     return thursdays;
-}
+
+    getThursdaysInMonth(month, year) {
+        var thursdays = 0;
+	    var numOfDays = new Date(year, month, 0).getDate();
+
+        for (var i=0; i<numOfDays; i++) {
+            if (new Date(year,month-1,i+1).getDay()==4) { thursdays+=1;} //4 = thursday
+        }
+        return thursdays;
+    }
+    
 	isClicked(orgunitIds: string[]): boolean {
 		return orgunitIds.reduce((result, orgunitId) => {
 			return result && this.orgunitsInfo[orgunitId].clicked === true
@@ -311,10 +312,11 @@ for(var i=0;i<numOfDays;i++)
 
 		var childrenInfo = this.Organisationunit.get({
 			paging: false,
-			fields: "id,name,level,children",
+			fields: "id,name,level,children[id,name,level]",
 			filter: "id:in:[" + this.orgunitsInfo[orgunit.id].children.map(child => child.id).join(",") + "]"
 		}).$promise;
-
+//console.log("childrenInfo");
+//console.log(childrenInfo);
 		var childrenQuery = this.AnalyticsService.queryAvailableData(this.orgunitsInfo[orgunit.id].children, this.selectedPeriod,
 			this.selectedFilters);
 
@@ -330,8 +332,12 @@ for(var i=0;i<numOfDays;i++)
 				var childrenResult = data[1];
 				var childrenHierarchy = orgunit.parents.slice(0);
 				childrenHierarchy.push(orgunit.id);
-				var childrenRows = this.AnalyticsService.formatAnalyticsResult(childrenResult, this.orgunitsInfo, childrenHierarchy, this.valuesDatastore);
+				var childrenHierarchyNames = orgunit.parentsNames.slice(0);
+				childrenHierarchyNames.push(orgunit.name);
+				var childrenRows = this.AnalyticsService.formatAnalyticsResult(childrenResult, this.orgunitsInfo, childrenHierarchy,childrenHierarchyNames, this.valuesDatastore);
 				this.tableRows = this.tableRows.concat(childrenRows);
+				//
+				//console.log("TableRows");
 				//console.log(this.tableRows);
 			})
 			.finally(() => {

@@ -16,7 +16,7 @@
  You should have received a copy of the GNU General Public License
  along with Project Manager.  If not, see <http://www.gnu.org/licenses/>. */
 
-import { OrgunitExtended } from '../../model/model';
+import { OrgunitExtended, OrgunitStatus } from '../../model/model';
 
 export class OrgunitService {
 
@@ -35,4 +35,23 @@ export class OrgunitService {
         }
         return this.Organisationunit.get(params).$promise.then( result => result.organisationUnits);
     }
+
+    getMissionsWithProjectsAndStatus(): ng.IPromise<OrgunitStatus[]> {
+        const fields = "id,name,level,openingDate,closedDate,attributeValues";
+        const params = {
+            filter: ["level:eq:3", "path:like:" + this.OCBA],
+            fields: `${fields},children[${fields}]`
+        }
+        return this.Organisationunit.get(params).$promise.then( result => result.organisationUnits);
+    }
+
+    getOrgUnitName(id) {
+        const fields = "id,name,level";
+        const params = {
+            filter: ["id:eq:"+id],
+            fields: `${fields}`
+        }
+        return this.Organisationunit.get(params).$promise.then( result => result.organisationUnits);
+    }
+
 }

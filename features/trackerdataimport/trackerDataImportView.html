@@ -19,13 +19,16 @@
 
 <h2>{{ 'TRACKER_DATA_IMPORT' | translate }}</h2>
 
-<div class="row" ng-show="undefinedFile">
+<div class="row" ng-show="ctrl.undefinedFile">
     <div class="col-md-12">
         <d2-messages type="danger" textmessage="{{ 'VALIDATION_FILE' | translate }}"></d2-messages>
     </div>
 </div>
 
-<div class="row">
+
+
+    
+<div class="row" ng-init="ctrl.init()">
     <div class="col-md-6">
         <label for="file_search"> {{ 'SELECT_FILE' | translate }} </label>
         <input type="file" class="form-control" ng-file-select="ctrl.onFileSelect($files)" name="file_search" required=""/>
@@ -45,8 +48,43 @@
         </button>
     </div>
 </div>
+<div class="row" ng-show="ctrl.importGap">
+    <div class="col-md-12">
+        <d2-messages type="danger" textmessage="{{ 'FILE_CONTAINS_DATA_REGISTERED_FROM' | translate }} {{ctrl.lastUpdated | date:'dd/MM/yyyy HH:mm' }} {{ 'TO' | translate }} {{ctrl.endDate | date:'dd/MM/yyyy HH:mm'}} {{'EXPORT_ENDED' | translate}} {{ctrl.endDateDataStore | date:'dd/MM/yyyy HH:mm'}}: {{'THERE_IS_GAP_TRACKER' | translate}} {{ctrl.projectName}} {{'PROJECT_EXPORT_FROM' | translate}} {{ctrl.endDateDataStore | date:'dd/MM/yyyy HH:mm'}} {{'ONWARDS' | translate}}."></d2-messages>
+    </div>
+</div>
+<div class="row" ng-show="ctrl.importOUTDATED">
+    <div class="col-md-12">
+        <d2-messages type="danger" textmessage="{{'FILE_CONTAINS_DATA' | translate}} {{ctrl.lastUpdated | date:'dd/MM/yyyy HH:mm' }} {{'TO' | translate}} {{ctrl.endDate | date:'dd/MM/yyyy HH:mm'}}. {{'LAST_IMPORTED_TRACKER_UNTIL' | translate}} {{ctrl.endDateDataStore | date:'dd/MM/yyyy HH:mm'}}. {{'DATA_OUTDATED' | translate}}"></d2-messages>
+    </div>
+</div>
 <br/>
+<table class="table table-bordered table-condensed table-hover" >
+        <thead>
+            <tr>
+                <th class="orgunit">{{ 'PROJECT_BASE' | translate}}</th>
+                <th>{{ 'PROGRAMS' | translate }}</th>
+                <th>{{ 'LAST_EXPORT_DATE' | translate }}</th>
+               
+            </tr>
+        </thead>
+        <tbody >
+            
+            <tr class="table-row" ng-repeat="project in ctrl.projects" >
+                <td  class="project">{{ project.name }} <span ng-if="project.serverName">(Base: <span class="capitalize">{{project.serverName}}</span></span><span ng-if="project.serverName">)</span></span></td>
+                <td  class="project">{{ project.programs }}</td>
+              
+              <td >{{ project.lastImportDate | date:'yyyy-MM-dd HH:mm' }}</td>
+               
+            </tr>
+        </tbody>
+    </table>
+    
+   
 <div id="file_summary" class="col-md-8" ng-show="ctrl.summary">
+       
+       <p>{{'FILE_CONTAINS_DATA_REGISTERED_FROM' | translate}} {{ctrl.lastUpdated | date:'dd/MM/yyyy HH:mm'}} {{'TO' | translate}} {{ctrl.endDate | date:'dd/MM/yyyy HH:mm'}} {{'FROM' | translate}} {{ctrl.projectName}}</p> 
+		
     <table class="table table-bordered table-condensed">
         <thead>
             <tr>
@@ -64,15 +102,53 @@
         </tbody>
     </table>
 </div>
-<br/>
-<div class="col-md-6">
+
+<div class="col-md-6" ng-show="ctrl.importingData" >
+    	<h3>{{ "IMPORTING_DATA" | translate }}</h3>
     <d2-progressbar-dynamic status="ctrl.progressStatus"></d2-progressbar-dynamic>
+    <p>{{ "IMPORTING_DATA" | translate }} ({{ctrl.numTei[0]}}/{{ctrl.numberTeis[0]}}): {{ ctrl.percent[0]}}%</p>
 </div>
 
 <br/>
+
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
 <br/>
 
-<div id="summary" ng-show="ctrl.analyticsLog.length > 0">
+		<div class="col-md-6" ng-show="false" > 
+            <!-- ng-show="ctrl.refreshingData"> -->
+
+			<h3 ng-show="false">{{ "REFRESHING_DATA" | translate }}</h3>
+			<d2-progressbar-dynamic status="ctrl.analyticsStatus"></d2-progressbar-dynamic>
+		</div>
+
+
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<div id="summary" ng-show="ctrl.import_result">
+        <h3>{{ 'IMPORT_SUMMARY' | translate }}</h3>
+
+<p>{{ 'IMPORTED_DATA' | translate }} {{'FROM' | translate}} {{ctrl.projectName}} {{'FROM' | translate}} {{ctrl.lastUpdated | date:'dd/MM/yyyy HH:mm'}} {{'TO' | translate}} {{ctrl.endDate | date:'dd/MM/yyyy HH:mm'}}</p> 
+		
+<p>{{'UPDATED' | translate}}: {{ctrl.updated}}</p>
+<p>{{'IMPORTED' | translate}}: {{ctrl.imported}}</p>
+<p>{{'DELETED' | translate}}: {{ctrl.deleted}}</p>
+<p>{{'IGNORED' | translate}}:: {{ctrl.ignored}}</p>
+<br />
+<h5>{{ 'REFRESHING_MESSAGE' | translate }}</h5>
+        </div>
+
+<div id="summary" ng-show="false">
+
+<!-- ng-show="ctrl.analyticsShow"> -->
+
     <h3>{{ 'ANALYTICS_MESSAGGE' | translate }}</h3>
 
     <table data-toggle="table" id="notificationTable" class="notificationTable" style="">
@@ -104,3 +180,10 @@
         </div>
     </div>
 </div>
+
+
+    
+ 
+
+
+

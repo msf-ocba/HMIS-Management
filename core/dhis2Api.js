@@ -20,10 +20,10 @@
 var Dhis2Api = angular.module("Dhis2Api", ['ngResource']);
 
 // Specify the target api version of DHIS2
-var apiVersion = 28;
+var apiVersion = 29;
 
 var urlBase = window.location.href.split('api/apps/')[0];
-var urlApi = urlBase + 'api/' + apiVersion + "/";
+var urlApi = urlBase + 'api/'; /* + apiVersion + "/";*/
 
 //Auxiliary variable to parse the url
 var urlAuxLink = document.createElement('a');
@@ -39,11 +39,12 @@ window.dhis2 = window.dhis2 || {};
 dhis2.settings = dhis2.settings || {};
 dhis2.settings.baseUrl = auxBaseUrl;
 
-var isOnline = urlBase.indexOf("//hmisocba.msf.es") >= 0;
+var isOnline = urlBase.indexOf("msf.es") >= 0;
+//isOnline=true;
 
 // Get and save DHIS version
 var version = "";
-$.ajax({ url: urlApi + "system/info", dataType: "json", async: "false", method: "GET" }).done( function (info) {
+$.ajax({ url: urlApi + "system/info", dataType: "json", async: "true", method: "GET" }).done( function (info) {
 	version = info.version;
 });
 
@@ -94,7 +95,7 @@ Dhis2Api.factory("TreeOrganisationunit",['$resource','commonvariable', function 
 Dhis2Api.factory("Organisationunit",['$resource','commonvariable', function ($resource,commonvariable) {
 	return $resource( commonvariable.url+"organisationUnits", 
         {
-            fields: 'name,id,level,parent,children, dataSets[id, name], organisationunits[id, parent],[organisationUnitGroups[id]',
+            fields: 'name,id,level,parent,children, dataSets[id, name,attributeValues[value,attribute[id,code]]], organisationunits[id, parent],[organisationUnitGroups[id]',
             paging: false
         },
         { get: { method: "GET"} }
@@ -117,7 +118,7 @@ Dhis2Api.factory("Analytics",['$resource','commonvariable', function ($resource,
 }]);
 
 Dhis2Api.factory("DataMart",['$resource','commonvariable', function ($resource,commonvariable) {
-	return $resource( commonvariable.url + "system/tasks/ANALYTICSTABLE_UPDATE",
+	return $resource( commonvariable.url + "system/tasks/ANALYTICS_TABLE",
    {lastId:'@lastId'},
   { get: { method: "GET"} });
 
@@ -266,7 +267,6 @@ Dhis2Api.factory("DataElementGroupsUID",['$resource','commonvariable', function 
 	{},
   { get: { method: "GET"} });
 }]);
-
 Dhis2Api.factory("DataStore",['$resource','commonvariable', function ($resource,commonvariable) {
 	return $resource( commonvariable.url+"dataStore/:namespace/:key",
 		{
@@ -292,9 +292,15 @@ Dhis2Api.factory("SqlView",['$resource', 'commonvariable', function($resource, c
 }]);
 
 Dhis2Api.factory("SqlViewData",['$resource', 'commonvariable', function($resource, commonvariable) {
-	return $resource( commonvariable.url + "sqlViews/:id/data.json",
+	return $resource( commonvariable.url + "29/sqlViews/:id/data.json?paging=false",
 		{id:'@id'});
 }]);
+
+Dhis2Api.factory("SqlViewRefresh",['$resource', 'commonvariable', function($resource, commonvariable) {
+	return $resource( commonvariable.url + "sqlViews/:id/refresh",
+		{id:'@id'}, {post: {method: "POST"}});
+}]);
+
 
 Dhis2Api.factory("OrganisationUnitGroupSet",['$resource','commonvariable', function ($resource,commonvariable) {
 	return $resource( commonvariable.url+"organisationUnitGroupSets/:groupsetid",
@@ -323,9 +329,9 @@ Dhis2Api.factory("RemoteInstanceUrl", ['$resource', 'commonvariable', function (
 	return $resource( commonvariable.url + "systemSettings/keyRemoteInstanceUrl", {}, {
 		get: {
 			method: 'GET',
-			transformResponse: function (response) {
+			/*transformResponse: function (response) {
 				return {html: response};
-			}
+		}*/
 		}
 	});
 }]);
@@ -353,17 +359,37 @@ Dhis2Api.factory("Events",['$resource', 'commonvariable', function ($resource, c
 Dhis2Api.factory("TrackedEntityInstances",['$resource', 'commonvariable', function ($resource, commonvariable) {
 	return $resource( commonvariable.url + "trackedEntityInstances/:uid",
 		{
-			fields:':all,attributes[attribute,value,created]'
+			fields:'*,attributes[attribute,value,created]'
 		} );
 }]);
 
 Dhis2Api.factory("Enrollments",['$resource', 'commonvariable', function ($resource, commonvariable) {
-	return $resource( commonvariable.url + "enrollments/:uid" );
+	return $resource( commonvariable.url + "enrollments/:uid", {}, {
+		get: {
+			method: 'GET',
+			params: {skipPaging: true}
+		}
+	});
 }]);
 
 Dhis2Api.factory("Programs",['$resource', 'commonvariable', function ($resource, commonvariable) {
-	return $resource( commonvariable.url + "programs/:uid" );
+	return $resource( commonvariable.url + "programs/:uid");
 }]);
+
+Dhis2Api.factory("JobExecute",['$resource', 'commonvariable', function ($resource, commonvariable) {
+	return $resource( commonvariable.url + "jobConfigurations/:uid/execute" );
+}]);
+
+
+
+Dhis2Api.factory("JobConfigurations",['$resource', 'commonvariable', function ($resource, commonvariable) {
+	return $resource( commonvariable.url + "jobConfigurations/:name" );
+}]);
+
+Dhis2Api.factory("Jobs",['$resource', 'commonvariable', function ($resource, commonvariable) {
+	return $resource( commonvariable.url + "jobConfigurations/:uid" );
+}]);
+
 
 Dhis2Api.factory("Ping", ['$resource', 'commonvariable', function ($resource, commonvariable) {
 	return $resource( commonvariable.url + "system/ping",
@@ -374,6 +400,7 @@ Dhis2Api.factory("Ping", ['$resource', 'commonvariable', function ($resource, co
 Dhis2Api.factory("Info", ['$resource', 'commonvariable', function ($resource, commonvariable) {
 	return $resource( commonvariable.url + "system/info");
 }]);
+
 
 
 Dhis2Api.factory("systemsetting", ['$resource', 'commonvariable', function ($resource, commonvariable) {
