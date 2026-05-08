@@ -113,7 +113,7 @@ var importdatamanualController = ["$scope","$interval","$http","$filter","common
     var isMFP = isMFP ||  await UserService.currentUserHasRole("Position: Medical Focal Point");
 	  var user= await UserService.getCurrentUser();
 
-	  var serverName=user.userCredentials.username.split("-")[1];
+	  var serverName=user.username.split("-")[1];
 	  //console.log("MFP");
 	  //console.log(isMFP);
 	  var  serverVersion=await SystemService.getServerVersion();
@@ -461,7 +461,7 @@ var importdatamanualController = ["$scope","$interval","$http","$filter","common
      var me = await UserService.getCurrentUser();
         var dataimportLog = {
           timestamp: new Date().getTime(),
-		  username: me.userCredentials.username,
+		  username: me.username,
 		  serverName: serverName_settings,
           filename: filename,
           status: data.status,

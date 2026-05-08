@@ -24,9 +24,14 @@ import { HmisSettingService } from '../services.module';
 export class EventHelper {
 
     // Constants to keep common names between EventExportService and EventImportService
-    public readonly TEIS = 'trackedEntityInstances';
+    public readonly TEIS = 'tracker';
+   
+
+
+
     public readonly TEIS_JSON = this.TEIS + ".json";
     public readonly TEIS_ZIP = this.TEIS + ".zip";
+
     public readonly ENROLLMENTS = 'enrollments';
     public readonly ENROLLMENTS_JSON = this.ENROLLMENTS + '.json';
     public readonly ENROLLMENTS_ZIP = this.ENROLLMENTS + '.zip';
@@ -51,7 +56,7 @@ export class EventHelper {
     encryptObject(object: Object) {
         return this.getEncryptationPassword().then(password => {
             var asString = JSON.stringify(object);
-            return AES.encrypt(asString, password).toString();
+           return AES.encrypt(asString, password).toString();
         })
     }
 

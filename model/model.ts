@@ -168,10 +168,14 @@ export class MetadataSyncRecord {
 }
 
 export class CurrentUser {
+    
     constructor(
         public id: string,
         public name: string,
-        public userCredentials: {username:string,usernameid: string, userRoles: IdName[]},
+public userRoles: IdName[],
+ public   username: string,
+
+      //  public userCredentials: {username:string,usernameid: string, userRoles: IdName[]},
         public userGroups: IdName[],
         public organisationUnits: OrgunitExtended[],
         public dataViewOrganisationUnits: {id: string, name:string, level: number, children:{id: string, level: number, children: string[]}[]}[]
@@ -229,7 +233,7 @@ export class EnrollmentList {
 
 export class TrackedEntityInstanceList {
     constructor(
-        public trackedEntityInstances: any[]
+        public trackedEntities: any[]
     ){}
 
     static empty = new TrackedEntityInstanceList([]);
