@@ -62,20 +62,20 @@ class MenuController {
         this.UserService.getCurrentUser().then(me => {
             this.isOnline = this.commonvariable.isOnline;
             this.isOffline = !this.isOnline;
-            const isMedco = me.userCredentials.userRoles.some(role => role.name == 'MedCo' || role.name == 'Position: MedCo');
-            const isTESACO = me.userCredentials.userRoles.some(role => role.name == 'TesaCo' || role.name=='Position: TesaCo');
-            const isMFP = me.userCredentials.userRoles.some(role => role.name == 'Medical Focal Point' || role.name=='Position: Medical Focal Point');
+            const isMedco = me.userRoles.some(role => role.name == 'MedCo' || role.name == 'Position: MedCo');
+            const isTESACO = me.userRoles.some(role => role.name == 'TesaCo' || role.name=='Position: TesaCo');
+            const isMFP = me.userRoles.some(role => role.name == 'Medical Focal Point' || role.name=='Position: Medical Focal Point');
             
             //const hasTrackerRoles = me.userCredentials.userRoles.some(role => /Individual Data/i.test(role.name));
             
-            const hasTrackerRoles = me.userCredentials.userRoles.some(role =>role.name == 'Exportation Individual data' || role.name=='HMIS Management: Export tracker data');
+            const hasTrackerRoles = me.userRoles.some(role =>role.name == 'Exportation Individual data' || role.name=='HMIS Management: Export tracker data');
             
 
 
 
-            const isHMISOfficer = me.userCredentials.userRoles.some(role => role.name == 'HMIS Officer' || role.name=='Position: HMIS Officer');
-            const isSuperUser = me.userCredentials.userRoles.some(role => role.name == 'Superuser' || role.name=='Position: Superuser');
-            const isOnlineDataSync = me.userCredentials.userRoles.some(role => role.name == 'Online Data Sync' || role.name=='HMIS Management: Aggregated Data Sync');
+            const isHMISOfficer = me.userRoles.some(role => role.name == 'HMIS Officer' || role.name=='Position: HMIS Officer');
+            const isSuperUser = me.userRoles.some(role => role.name == 'Superuser' || role.name=='Position: Superuser');
+            const isOnlineDataSync = me.userRoles.some(role => role.name == 'Online Data Sync' || role.name=='HMIS Management: Aggregated Data Sync');
  
            
             this.isAdministrator = me.userGroups.some(group => group.name == 'Administrators');
@@ -84,14 +84,16 @@ class MenuController {
            
             this.showMetadataImport = isSuperUser || (this.isOffline && ( this.isAdministrator || isOnlineDataSync));
             this.showDataImport =  isSuperUser || this.isAdministrator || isMedco || (isMFP && this.isOffline );
-            this.showValidation =   isSuperUser || (this.isOnline && ( this.isAdministrator || isMedco || isTESACO)) ;
+         //   this.showValidation =   isSuperUser || (this.isOnline && ( this.isAdministrator || isMedco || isTESACO)) ;
+             this.showValidation = false; //hiding validation as agreed
             this.showDataExport =  isSuperUser || this.isAdministrator || (isMFP && this.isOffline);
             
             this.showValidationRequest =  isMFP && this.isOnline;
+this.showValidationRequest = false; //hiding validation request as agreed
 
             
             this.showTrackerExport =  isSuperUser || this.isAdministrator || (isMFP && hasTrackerRoles && this.isOffline);
-            this.showTrackerImport =  isSuperUser || this.isAdministrator || isMedco || (isMFP && hasTrackerRoles && this.isOffline);
+         this.showTrackerImport =  isSuperUser || this.isAdministrator || isMedco || (isMFP && hasTrackerRoles && this.isOffline);
             this.showCapital =  isSuperUser || this.showDataImport  || this.showTrackerImport || this.showValidation;
             this.showProject =   isSuperUser || this.showDataExport || this.showTrackerExport || this.showMetadataImport || this.showValidationRequest;
             this.showMetadataMonitor =  isSuperUser || this.isAdministrator || isHMISOfficer || this.isHMISOfficerGroup;

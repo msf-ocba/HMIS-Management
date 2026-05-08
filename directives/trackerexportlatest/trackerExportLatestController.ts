@@ -59,7 +59,7 @@ class TrackerExportLatestController {
     $onInit() {
 
         this.UserService.getCurrentUser().then (user=> {
-             this.serverName=user.userCredentials.username.split("-")[1];
+             this.serverName=user.username.split("-")[1];
             } ).then(()=>{
                 
                 return    this.UserService.getCurrentUserOrgunits()
@@ -170,7 +170,7 @@ class TrackerExportLatestController {
         var serverDate: Date;
         var serverName;
         return this.UserService.getCurrentUser()
-        .then(user=> serverName=user.userCredentials.username.split("-")[1]
+        .then(user=> serverName=user.username.split("-")[1]
         )
         .then(()=> this.SystemService.getServerDateWithTimezone())
             .then( date => serverDate = date )

@@ -1,4 +1,3 @@
-
 /*
  Copyright (c) 2015.
 
@@ -85,7 +84,7 @@ export class EventExportService {
      */
     exportEventsFromLastWithDependenciesInZip (lastUpdated: string, endDate, serverName, orgunits: Orgunit[], programs?: Program[]) {
         return this.exportEventsFromLastWithDependencies2(lastUpdated, endDate, orgunits, programs)
-           .then(wrapper => this.EventHelper.encryptObject(wrapper))
+          .then(wrapper => this.EventHelper.encryptObject(wrapper))
             .then(file => this.compressFileByElementType2(file, lastUpdated, endDate, serverName, orgunits, programs));
     };
 
@@ -126,8 +125,8 @@ export class EventExportService {
         ])
         .then(([teisWithDependencies]) => {
             let dataWrapper = teisWithDependencies;
-            //console.log("dataWrapper");
-            //console.log(dataWrapper);
+            console.log("dataWrapper");
+            console.log(dataWrapper);
             return dataWrapper;
         });
      
@@ -203,11 +202,14 @@ export class EventExportService {
      */
     getTrackedEntityInstancesFromLastWithDependecies (lastUpdated: string,endDate, orgunitProgramCombo: OrgunitProgramComboItem[]): ng.IPromise<TrackedEntityInstanceList> {
         const commonParams = {
-            lastUpdatedStartDate: lastUpdated,
+            updatedAfter: lastUpdated,
             //pageSize: 50000, //workaround for paging:false
-            ouMode: 'ACCESSIBLE',
-            skipPaging: true,  //workaround for paging:false
-            lastUpdatedEndDate:  endDate
+           // ouMode: 'ACCESSIBLE',
+
+            orgUnitMode: 'ACCESSIBLE', //en dhis42
+          //  skipPaging: true,  //workaround for paging:false
+            paging: false,
+            updatedBefore :  endDate
             //paging: false not working in 2.37
         };
         let teiPromises = orgunitProgramCombo.map( (combination) => {
@@ -218,7 +220,7 @@ export class EventExportService {
 
         return this.$q.all(teiPromises).then(
             (teisArray: TrackedEntityInstanceList[]) => teisArray.reduce( (totalTeis: TrackedEntityInstanceList, currentTei: TrackedEntityInstanceList) => {
-                    return new TrackedEntityInstanceList(totalTeis.trackedEntityInstances.concat(currentTei.trackedEntityInstances));
+                    return new TrackedEntityInstanceList(totalTeis.trackedEntities.concat(currentTei.trackedEntities));
                 }, TrackedEntityInstanceList.empty)
         )
     }
@@ -232,7 +234,8 @@ export class EventExportService {
     getTrackedEntityInstancesFromLast (lastUpdated: string, orgunitProgramCombo: OrgunitProgramComboItem[]): ng.IPromise<TrackedEntityInstanceList> {
         const commonParams = {
             lastUpdated: lastUpdated,
-            ouMode: 'ACCESSIBLE'
+          //  ouMode: 'ACCESSIBLE'
+              orgUnitMode: 'ACCESSIBLE' //en dhis42
         };
         let teiPromises = orgunitProgramCombo.map( (combination) => {
             //ou: combination.orgUnit, 
@@ -242,7 +245,7 @@ export class EventExportService {
 
         return this.$q.all(teiPromises).then(
             (teisArray: TrackedEntityInstanceList[]) => teisArray.reduce( (totalTeis: TrackedEntityInstanceList, currentTei: TrackedEntityInstanceList) => {
-                    return new TrackedEntityInstanceList(totalTeis.trackedEntityInstances.concat(currentTei.trackedEntityInstances));
+                    return new TrackedEntityInstanceList(totalTeis.trackedEntities.concat(currentTei.trackedEntities));
                 }, TrackedEntityInstanceList.empty)
         )
     }

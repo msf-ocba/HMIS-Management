@@ -52,13 +52,13 @@ export class AnalyticsService {
 
     private buildAnalyticsParameters(orgunit, period, filters): AnalyticsParameters {
 
-     var orgunits = "";
+        var orgunits = "";
         if (orgunit instanceof Array) {
             orgunits = orgunit.map((value, index, array) => value.id).join(";")
         } else {
             orgunits = orgunit.id;
         }
-   
+
         // Build dimension parameter
         var parameters: AnalyticsParameters = {
             dimension: [
@@ -66,7 +66,7 @@ export class AnalyticsService {
                 "pe:" + period.id,
                 "fGoEwhKl0WS:T0qg4AAHiby"
             ],
-            
+
             aggregationType: "COUNT",
             hierarchyMeta: "TRUE",
             displayProperty: "NAME"
@@ -110,17 +110,17 @@ export class AnalyticsService {
 
         var noValidatedPeriod = false;
 
-       
+
         angular.forEach(analytics.metaData.dimensions.ou, (orgunit) => {
-        
-         var fullName=names.join("/");
-         
+
+            var fullName = names.join("/");
+
             if (fullName == "") fullName = fullName.concat(analytics.metaData.items[orgunit].name);
             else fullName = fullName.concat("/" + analytics.metaData.items[orgunit].name);
 
             fullName = fullName.replace(/\ /g, "_");
-          //  console.log("fullName");
-          //  console.log(fullName);
+            //  console.log("fullName");
+            //  console.log(fullName);
 
 
             orgunits[orgunit] = {
@@ -141,7 +141,7 @@ export class AnalyticsService {
         angular.forEach(analytics.rows, (row) => {
 
             noValidatedPeriod = false;
-            if (valuesDatastore[row[0]] != undefined) { noValidatedPeriod = valuesDatastore[row[0]]["'" + row[1] + "'"]}
+            if (valuesDatastore[row[0]] != undefined) { noValidatedPeriod = valuesDatastore[row[0]]["'" + row[1] + "'"] }
 
             orgunits[row[0]].data[row[1]] = { value: row[3], noValidatedPeriod: noValidatedPeriod };
 
@@ -157,83 +157,104 @@ export class AnalyticsService {
      * - notifies each message retrieved about the analytics execution
      * @returns {Promise}
      */
-    refreshAnalytics(params) {
-        var deferred = this.$q.defer();
-        var analytics_id;
-        //Analytics.post(params,'');
-        var resp = this.Analytics.post();
-        resp.$promise.then(
-            data =>{
-            analytics_id=data.response.id;
-         // console.log(analytics_id);
-            }
-        );
-        
-       var values=[];
-       var executed;
-        var inputParameters = {};
-        var previousMessage = "";
+  refreshAnalytics(params) {
+    var deferred = this.$q.defer();
+
+    var previousMessage = "";
+
+
+    var resp = this.Analytics.post();
+
+    resp.$promise.then(data => {
+
+        const analytics_id = data.response.id;
+        console.log("analytics_id", analytics_id);
+var finished = false;
+        var inputParameters = {
+            id: analytics_id
+        };
+var sentIds = new Set();
         var checkStatus = this.$interval(() => {
+
             var result = this.DataMart.get(inputParameters);
-          
+
             result.$promise.then(
-                data => {
-                   // console.log(data);
-                   // var dataElement = data[0];
-                    //var dataElement = data[Object.keys(data)[1]][0];
-                    //var dataElement= data[analytics_id][0];
-                   //console.log(data);
-                   // var dataElement= data[0];
-                   //console.log("KEYS");
-                   //console.log(Object.keys(data));
+                taskArray => {
 
-                   var le=Object.keys(data).length-2;
-                   for (var i = 0; i< le; i++) {
-                    values[i]=data[Object.keys(data)[i]][0];
+                    console.log("taskArray", taskArray);
 
-                    
-                  }
-                 
-
-                   values.sort((a, b) => (a.time <= b.time) ? 1 : -1);
-                  
-
-                   var id=values[0].id;
-
-                 
-                   if (executed!=true) {
-                   for (var i2 =data[id].length-1; i2>0; i2--) {
-                    deferred.notify(data[id][i2]);
-                    executed=true;                    
-                  }}
-
-                   var dataElement= values[0];
-                   //console.log(dataElement);
-                    if (dataElement != undefined) {
-                       // inputParameters = { lastId: dataElement.uid };
-                        if (dataElement.completed == true) {
-                            this.$interval.cancel(checkStatus);
-                            deferred.notify(dataElement);
-                            deferred.resolve("Done update analytics");
-                        }
-                        if (previousMessage != dataElement.message) {
-                            deferred.notify(dataElement);
-                            previousMessage = dataElement.message;
-                        }
+                    // 🔒 validación básica
+                    if (!Array.isArray(taskArray) || taskArray.length === 0) {
+                        console.log("Task aún no disponible");
+                        return;
                     }
-                    
+
+                    // 📦 orden por tiempo (más reciente primero)
+                    let values = [...taskArray];
+
+                    values.sort((a, b) =>
+                        new Date(b.time).getTime() - new Date(a.time).getTime()
+                    );
+
+                    const latest = values[0];
+
+                    if (!latest) return;
+/*
+  // 🚀 recorrer TODOS los eventos
+            values.forEach(item => {
+
+                if (!sentIds.has(item.id)) {
+                    deferred.notify(item);
+                    sentIds.add(item.id);
+                }
+
+            });
+*/
+            for (let i = values.length - 1; i >= 0; i--) {
+    const item = values[i];
+
+    if (!sentIds.has(item.id)) {
+        deferred.notify(item);
+        sentIds.add(item.id);
+    }
+}
+
+
+/*
+                    // 🔔 notificar solo si cambia mensaje
+                    if (previousMessage !== latest.message) {
+                        deferred.notify(latest);
+                        previousMessage = latest.message;
+                    } */
+
+                         finished = values.some(i =>
+   i.message && i.message.includes("Analytics tables updated")
+);
+ if (finished) {
+                        this.$interval.cancel(checkStatus);
+                        deferred.resolve("Done update analytics");
+                    }
+                    /*
+                    // ✅ finalizar cuando completed = true
+                    if (latest.completed === true) {
+                        this.$interval.cancel(checkStatus);
+                        deferred.resolve("Done update analytics");
+                    }
+                        */
+
                 },
                 error => {
                     this.$interval.cancel(checkStatus);
-              
                     deferred.reject("Error while refreshing analytics");
                 }
             );
-        },200);
 
-        return deferred.promise;
-    }
+        }, 200);
 
+    });
+
+    return deferred.promise;
+}
     refreshAllAnalytics() {
         return this.refreshAnalytics({});
     }

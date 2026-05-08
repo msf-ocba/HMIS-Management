@@ -40,6 +40,7 @@ export class TrackerDataImport {
     importGap=false;
     importOUTDATED=false;
     message="";
+    hasErrors=false;
     d="";
     imported="";
     deleted="";
@@ -154,7 +155,7 @@ export class TrackerDataImport {
           this.$rootScope.$on('numTeiOk', function(event,data) {
             
             numTei[0]=parseInt(data)+1;
-            percent[0]=Math.round(data/num[0]*100);
+            percent[0]=Math.round(numTei[0]/num[0]*100);
             //console.log("Porcentaje"+ percent[0]);
           });
        
@@ -201,6 +202,8 @@ export class TrackerDataImport {
                         this.updated=result["data"].updated;
                         this.deleted=result["data"].deleted;
                         this.ignored=result["data"].ignored;
+                       this.hasErrors=result["data"].hasErrors; 
+
                         this.progressStatus = ProgressStatus.doneSuccessful;
                         //this.progressStatus = ProgressStatus.doneWithFailure
                         var namespace="ServersTrackerImportDates";

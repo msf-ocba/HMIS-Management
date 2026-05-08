@@ -79,7 +79,7 @@ export class ResetPassword {
 				this.UserService.updateUserPassword(user, this.password.new).then(
 					result => {
 						if (result.status === "OK") {
-							console.info("Password reset for username " + user.userCredentials.username);
+							console.info("Password reset for username " + user.username);
 							this.resetPasswordResult.updated++;
 							this.individualProgressStatus.value =
 								100 * (this.resetPasswordResult.updated / this.resetPasswordResult.total);

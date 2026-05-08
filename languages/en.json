@@ -23,6 +23,8 @@
     "UPDATED": "Updated",
     "DELETED": "Deleted",
 	"IGNORED": "Ignored",
+	"MESSAGE": "ERROR IMPORTING DATA",
+	"MESSAGE_TEXT": "Some errors occurred during the import. Please contact ZenitHelp.Apps4Ops@barcelona.msf.org",
 	"HOME": "Home",
 
 	"_______________ Data ":" Approval_____________",

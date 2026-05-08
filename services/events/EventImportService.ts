@@ -117,8 +117,8 @@ export class EventImportService {
                .then(decrpyted => 
                 {
 
-                // console.log("decrpyted");
-                //console.log(decrpyted);
+                console.log("decrpyted");
+                console.log(decrpyted);
                 return {"settings": settingsResult, "content":decrpyted};
               
                 }
@@ -134,116 +134,209 @@ export class EventImportService {
             .then( (data) => this.uploadFile(this.EventHelper.TEIS, data, params) );
     }
 */
-    private async getAndUploadTeis2 (content) {
+   private async getAndUploadTeis2 (content) {
+//var hasErrors = false;        
+//    console.log("CONTENT");
+//    console.log(JSON.stringify(content));
+    var teis = content.trackedEntities;
+
+    const paramsDeleted = { importStrategy: 'DELETE',async: false};
+    const paramsUpdated = { importStrategy: 'CREATE_AND_UPDATE', async: false};
         
-        //var teis = new Object();
-        //console.log("content");
-        //console.log(content);
-        var teis = content.trackedEntityInstances;
-        const params = { strategy: 'SYNC'}
-        //console.log("Teis");
-        //console.log(teis);
-        var numberTeis=teis.length;
-        this.$rootScope.$broadcast('numberTeisOk',numberTeis);
+    var numberTeis=teis.length;
+    this.$rootScope.$broadcast('numberTeisOk',numberTeis);
 
-        var resultAll={
-            "numberTeis":numberTeis,
-            "updated":0,
-            "deleted":0,
-            "imported":0,
-            "ignored":0,
+    var resultAll={
+        "numberTeis":numberTeis,
+        "updated":0,
+        "deleted":0,
+        "imported":0,
+        "ignored":0,
+        "hasErrors": false,
+    "errors": [],
+    "TEIS": [],
+   
+    message: ""
+        
+     };
 
-            "TEIS": []
-         };
-        console.log("Number of TEIS:"+ numberTeis);
+    console.log("Number of TEIS:"+ numberTeis);
       
-         for (var tei in teis)  {
+    for (var tei in teis)  {
             
-       
         this.$rootScope.$broadcast('numTeiOk',tei);
-        console.log("Importing TEI ("+tei+"/"+numberTeis+"):"+teis[tei].trackedEntityInstance)
 
-       
-    
-        teis[tei].enrollments.forEach(
-            enrollment=>{ 
-                   
-            
-            enrollment.events.forEach(event=>{if (event.notes!=undefined && event.notes.length>0 ) { 
-                //console.log("notas");
-                //console.log(event.notes);
-                event.notes=[];
-            }})
-            
+        var currentTei = teis[tei];
+
+        console.log("Importing TEI ("+tei+"/"+numberTeis+"):"+currentTei.trackedEntity);
+
+        // 🔴 Payload de borrado por TEI
+        var deletePayload = {
+            trackedEntities: [],
+            enrollments: [],
+            events: []
+        };
+
+        // 🔴 Si el TEI está borrado → solo DELETE
+        if (currentTei.deleted) {
+
+            deletePayload.trackedEntities.push({
+                trackedEntity: currentTei.trackedEntity
             });
-       
 
-        var tei2={"trackedEntityInstances":[teis[tei]]}
-        var data= await this.zipObject(this.EventHelper.TEIS, tei2);
-        var result= await this.uploadFile(this.EventHelper.TEIS, data, params);
+        } else {
 
+            // 🟢 Construir TEI limpio
+            var cleanTei = Object.assign({}, currentTei);
+            //delete cleanTei.deleted;
+            cleanTei.enrollments = [];
 
-        console.log("Result: "+result.data.message);
-        console.log(result.data);
-        resultAll.updated +=result.data.response.updated;
-        resultAll.imported +=result.data.response.imported;
-        resultAll.deleted +=result.data.response.deleted;
-        resultAll.ignored +=result.data.response.ignored;
-        var t={
-            "uid": teis[tei].trackedEntityInstance,
-            "result": result.data
-    }
-    
-        resultAll.TEIS.push(t);
-        
-        }
-        console.log("ResultAll:");
-        console.log(resultAll);
-                return resultAll;
-             }
-         
-  /*
-    private getAndUploadEnrollmentsAsActive (content: EventDataWrapper) {
-        const activeEnrollments = content.enrollments.map( (enrollment) => {
-            let copy = Object.assign({}, enrollment);
-            copy.status = "ACTIVE";
-            return copy;
-        });
+            if (currentTei.enrollments != undefined) {
 
-        const enrollments = new Object();
-        enrollments[this.EventHelper.ENROLLMENTS] = activeEnrollments;
-        const params = { strategy: 'CREATE_AND_UPDATE' }
-        return this.zipObject(this.EventHelper.ENROLLMENTS, enrollments)
-            .then( (data) => this.uploadFile(this.EventHelper.ENROLLMENTS, data, params) );
-    }
+                currentTei.enrollments.forEach(enrollment => {
 
-    private getAndUploadDeletedEvents (content: EventDataWrapper) {
-        const deletedEvents = content.events.filter( event => event.deleted);
-        const events = new Object();
-        events[this.EventHelper.EVENTS] = deletedEvents;
-        const params = { strategy: 'UPDATE' }
-        return this.zipObject(this.EventHelper.EVENTS, events)
-            .then( (data) => this.uploadFile(this.EventHelper.EVENTS, data, params) );
-    }
+                    // 🔴 Enrollment a borrar
+                    if (enrollment.deleted) {
+                        deletePayload.enrollments.push({
+                            enrollment: enrollment.enrollment
+                        });
+                        return;
+                    }
 
-    private getAndUploadActiveEvents (content: EventDataWrapper) {
-        const activeEvents = content.events.filter( event => !event.deleted);
-        const events = new Object();
-        events[this.EventHelper.EVENTS] = activeEvents;
-        const params = { strategy: 'CREATE_AND_UPDATE' }
-        return this.zipObject(this.EventHelper.EVENTS, events)
-            .then( (data) => this.uploadFile(this.EventHelper.EVENTS, data, params) );
-    }
+                    var cleanEnrollment = Object.assign({}, enrollment);
+                    //delete cleanEnrollment.deleted;
+                    cleanEnrollment.events = [];
 
-    private getAndUploadEnrollments (content: EventDataWrapper) {
-        const enrollments = new Object();
-        enrollments[this.EventHelper.ENROLLMENTS] = content[this.EventHelper.ENROLLMENTS];
-        const params = { strategy: 'CREATE_AND_UPDATE' }
-        return this.zipObject(this.EventHelper.ENROLLMENTS, enrollments)
-            .then( (data) => this.uploadFile(this.EventHelper.ENROLLMENTS, data, params) );
-    }
+                    if (enrollment.events != undefined) {
+
+                        enrollment.events.forEach(event => {
+
+                            // 🔴 Evento a borrar
+                            if (event.deleted) {
+                                deletePayload.events.push({
+                                    event: event.event
+                                });
+                                return;
+                            }
+
+                            // 🟢 Evento limpio
+                            var cleanEvent = Object.assign({}, event);
+                            //delete cleanEvent.deleted;
+
+                            // mantener tu lógica original
+                            if (cleanEvent.notes!=undefined && cleanEvent.notes.length>0 ) { 
+                                cleanEvent.notes=[];
+                            }
+
+                            cleanEnrollment.events.push(cleanEvent);
+                        });
+                    }
+
+                    cleanTei.enrollments.push(cleanEnrollment);
+                });
+            }
+
+         try {
+   
+            // 🚀 CREATE / UPDATE
+            var tei2={"trackedEntities":[cleanTei]};
+            //var data= await this.zipObject(this.EventHelper.TEIS, tei2);
+  
+           // var result= await this.uploadFile(this.EventHelper.TEIS, data, paramsUpdated);
+
+            var result = await this.uploadJson("tracker", tei2, paramsUpdated);
+            
+            console.log("Result: "+result.data.message);
+            console.log(result.data);
+
+            var typeReportMap = result.data.bundleReport.typeReportMap || {};
+
+resultAll.updated += typeReportMap.TRACKED_ENTITY.stats.updated|| 0;
+resultAll.imported += typeReportMap.TRACKED_ENTITY.stats.imported || 0;
+
+//resultAll.imported += (stats.created || stats.imported || 0);
+//resultAll.deleted += stats.deleted || 0;
+resultAll.ignored += typeReportMap.TRACKED_ENTITY.stats.ignored || 0;
+/*
+            resultAll.updated +=result.data.response.updated;
+            resultAll.imported +=result.data.response.imported;
+            resultAll.deleted +=result.data.response.deleted;
+            resultAll.ignored +=result.data.response.ignored;
 */
-    private zipObject (name: string, object) {
+            var t={
+                "uid": currentTei.trackedEntity,
+                "result": result.data
+            };
+
+            resultAll.TEIS.push(t);
+} catch (error) {
+
+    console.error("UPDATE ERROR TEI:", currentTei.trackedEntity, error);
+ resultAll.hasErrors = true;
+    resultAll.errors.push({
+        uid: currentTei.trackedEntity,
+        type: "UPDATE",
+        message: (error && error.data && error.data.message)
+    || (error && error.message)
+    || "Error"
+    });
+
+    resultAll.TEIS.push({
+        uid: currentTei.trackedEntity,
+        type: "ERROR",
+        error: (error && error.data) || (error && error.message) || "Error"
+    });
+}
+
+        }
+
+        // 🚀 DELETE (si hay algo que borrar)
+        if (
+            deletePayload.trackedEntities.length > 0 ||
+            deletePayload.enrollments.length > 0 ||
+            deletePayload.events.length > 0
+        ) {
+
+            //var dataDelete = await this.zipObject(this.EventHelper.TEIS, deletePayload);
+//            var resultDelete = await this.uploadFile(this.EventHelper.TEIS, dataDelete, paramsDeleted);
+   try {
+            var resultDelete = await this.uploadJson("tracker", deletePayload, paramsDeleted);
+            console.log("Delete Result:", resultDelete.data);
+
+            var statsDelete = resultDelete.data.bundleReport.stats || {};
+resultAll.deleted += +1;
+
+
+
+ } catch (error) {
+        console.error("DELETE ERROR TEI:", currentTei.trackedEntity, error);
+ resultAll.hasErrors = true;
+      resultAll.errors.push({
+        uid: currentTei.trackedEntity,
+        type: "DELETE",
+        message:(error && error.data && error.data.message)
+    || (error && error.message)
+    || "Error"
+    });
+    }
+
+
+
+
+//            resultAll.deleted += resultDelete.data.response.deleted || 0;
+        }
+    }
+
+    console.log("ResultAll:");
+    console.log(resultAll);
+    resultAll.hasErrors = resultAll.errors.length > 0;
+ return resultAll;
+}
+
+//FIN CODIGO NUEVO
+
+
+ private zipObject (name: string, object) {
         //console.log("stringfy");
         //console.log(JSON.stringify(object));
         return  (new JSZip())
@@ -267,6 +360,16 @@ export class EventImportService {
             return this.$q.resolve("Nothing to upload");
         }
     }
+
+    private uploadJson (endpoint: string, data, params) {
+    return this.$http({
+        method: 'POST',
+        url: this.commonvariable.url + endpoint,
+        params: params,
+        data: data,
+        headers: { "Content-Type": "application/json" }
+    });
+}
 /*
     private uploadFile2 (endpoint: string, file, params) {
             
@@ -361,7 +464,7 @@ export class EventImportService {
     }
     
     private addNameToProgramsAndStages (eventsByProgram) {
-        var promiseArray = $.map(eventsByProgram, (value, programId) => {
+        var promiseArray = $.map(eventsByProgram, (value, programId: string) => {
             return this.ProgramService.getProgramAndStages(programId);
         });
 

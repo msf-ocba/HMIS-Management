@@ -965,13 +965,14 @@ var RESTUtil = exports.RESTUtil = function () {
 
 ;
 
-var AvailableDataItem = exports.AvailableDataItem = function AvailableDataItem(id, name, fullName, parents, level, relativeLevel, isLastLevel, data) {
+var AvailableDataItem = exports.AvailableDataItem = function AvailableDataItem(id, name, fullName, parents, parentsNames, level, relativeLevel, isLastLevel, data) {
     _classCallCheck(this, AvailableDataItem);
 
     this.id = id;
     this.name = name;
     this.fullName = fullName;
     this.parents = parents;
+    this.parentsNames = parentsNames;
     this.level = level;
     this.relativeLevel = relativeLevel;
     this.isLastLevel = isLastLevel;
@@ -3055,7 +3056,7 @@ Dhis2Api.factory("TreeOrganisationunit", ['$resource', 'commonvariable', functio
 
 Dhis2Api.factory("Organisationunit", ['$resource', 'commonvariable', function ($resource, commonvariable) {
 	return $resource(commonvariable.url + "organisationUnits", {
-		fields: 'name,id,level,parent,children, dataSets[id, name], organisationunits[id, parent],[organisationUnitGroups[id]',
+		fields: 'name,id,level,parent,children, dataSets[id, name,attributeValues[value,attribute[id,code]]], organisationunits[id, parent],[organisationUnitGroups[id]',
 		paging: false
 	}, { get: { method: "GET" } });
 }]);
@@ -3202,7 +3203,11 @@ Dhis2Api.factory("SqlView", ['$resource', 'commonvariable', function ($resource,
 }]);
 
 Dhis2Api.factory("SqlViewData", ['$resource', 'commonvariable', function ($resource, commonvariable) {
-	return $resource(commonvariable.url + "sqlViews/:id/data.json", { id: '@id' });
+	return $resource(commonvariable.url + "sqlViews/:id/data.json?paging=false", { id: '@id' });
+}]);
+
+Dhis2Api.factory("SqlViewRefresh", ['$resource', 'commonvariable', function ($resource, commonvariable) {
+	return $resource(commonvariable.url + "sqlViews/:id/refresh", { id: '@id' }, { post: { method: "POST" } });
 }]);
 
 Dhis2Api.factory("OrganisationUnitGroupSet", ['$resource', 'commonvariable', function ($resource, commonvariable) {
@@ -3251,7 +3256,7 @@ Dhis2Api.factory("Events", ['$resource', 'commonvariable', function ($resource, 
 
 Dhis2Api.factory("TrackedEntityInstances", ['$resource', 'commonvariable', function ($resource, commonvariable) {
 	return $resource(commonvariable.url + "trackedEntityInstances/:uid", {
-		fields: ':all,attributes[attribute,value,created]'
+		fields: '*,attributes[attribute,value,created]'
 	});
 }]);
 
@@ -14407,7 +14412,7 @@ if("undefined"==typeof jQuery)throw new Error("Bootstrap's JavaScript requires j
 /* 153 */
 /***/ (function(module, exports) {
 
-module.exports = " <h2>{{ 'ANALYTICS' | translate }}</h2> <br/> <div class=col-md-6> <d2-progressbar-dynamic status=ctrl.progressStatus></d2-progressbar-dynamic> </div> <div class=\"col-md-12 form_group\"> <button type=button ng-click=ctrl.analytics() class=\"btn btn-primary\">{{ 'ANALYTICS_BUTTON' | translate }}</button> </div> <br/> <div id=summary ng-show=ctrl.summaryDisplayed> <h3>{{ 'ANALYTICS_MESSAGGE' | translate }}</h3> <table data-toggle=table id=notificationTable class=notificationTable style=\"\"> <tbody> <tr ng-repeat=\"notification in ctrl.notifications | orderBy:'-time'\"> <td>{{notification.time}}</td> <td>: {{notification.message}}</td> </tr> </tbody> </table> <div> </div></div>";
+module.exports = " <h2>{{ 'ANALYTICS' | translate }}</h2> <br/> <div class=col-md-6> <d2-progressbar-dynamic status=ctrl.progressStatus></d2-progressbar-dynamic> </div> <div class=\"col-md-12 form_group\"> <button type=button ng-click=ctrl.analytics() class=\"btn btn-primary\">{{ 'ANALYTICS_BUTTON' | translate }}</button> </div> <br/> <div id=summary ng-show=ctrl.summaryDisplayed> <h3>{{ 'ANALYTICS_MESSAGGE' | translate }}</h3> <table data-toggle=table id=notificationTable class=notificationTable style=\"\"> <tbody> <tr ng-repeat=\"notification in ctrl.notifications  \"> <td>{{notification.time}}</td> <td>: {{notification.message}}</td> </tr> </tbody> </table> <div> </div></div>";
 
 /***/ }),
 /* 154 */
@@ -47257,29 +47262,44 @@ var importdatamanualController = ["$scope", "$interval", "$http", "$filter", "co
 
           case 28:
             isMFP = _context.sent;
-            _context.next = 31;
+            _context.t0 = isMFP;
+
+            if (_context.t0) {
+              _context.next = 34;
+              break;
+            }
+
+            _context.next = 33;
+            return UserService.currentUserHasRole("Position: Medical Focal Point");
+
+          case 33:
+            _context.t0 = _context.sent;
+
+          case 34:
+            isMFP = _context.t0;
+            _context.next = 37;
             return UserService.getCurrentUser();
 
-          case 31:
+          case 37:
             user = _context.sent;
             serverName = user.userCredentials.username.split("-")[1];
             //console.log("MFP");
             //console.log(isMFP);
 
-            _context.next = 35;
+            _context.next = 41;
             return SystemService.getServerVersion();
 
-          case 35:
+          case 41:
             serverVersion = _context.sent;
-            _context.next = 38;
+            _context.next = 44;
             return JSZip.loadAsync($file);
 
-          case 38:
+          case 44:
             zip2 = _context.sent;
             settingsEntry = undefined;
             projectEntry = undefined;
             dataEntry = undefined;
-            _context.next = 44;
+            _context.next = 50;
             return zip2.forEach(function (relativePath, zipEntry) {
 
               if (zipEntry.name.indexOf(".json") > -1) {
@@ -47288,28 +47308,28 @@ var importdatamanualController = ["$scope", "$interval", "$http", "$filter", "co
               }
             });
 
-          case 44:
+          case 50:
             if (!dataEntry) {
-              _context.next = 50;
+              _context.next = 56;
               break;
             }
 
-            _context.next = 47;
+            _context.next = 53;
             return dataEntry.async("text");
 
-          case 47:
+          case 53:
             data2 = _context.sent;
-            _context.next = 54;
+            _context.next = 60;
             break;
 
-          case 50:
+          case 56:
             data_import = false;
             $scope.importFailed = true;
             $scope.$apply();
             console.log("No data file in the zip");
 
-          case 54:
-            _context.next = 56;
+          case 60:
+            _context.next = 62;
             return zip2.forEach(function (relativePath, zipEntry) {
               if (zipEntry.name.indexOf("settings.txt") > -1) {
 
@@ -47317,16 +47337,16 @@ var importdatamanualController = ["$scope", "$interval", "$http", "$filter", "co
               }
             });
 
-          case 56:
+          case 62:
             if (!settingsEntry) {
-              _context.next = 71;
+              _context.next = 77;
               break;
             }
 
-            _context.next = 59;
+            _context.next = 65;
             return settingsEntry.async("text");
 
-          case 59:
+          case 65:
             settings = _context.sent;
 
             serverName_settings = JSON.parse(settings).serverName;
@@ -47346,17 +47366,17 @@ var importdatamanualController = ["$scope", "$interval", "$http", "$filter", "co
               //$scope.mensaje ="Different HMIS versions. Please ask the project to update."
               // console.log("DIFFERENT_VERSIONS");
             }
-            _context.next = 75;
+            _context.next = 81;
             break;
 
-          case 71:
+          case 77:
             data_import = false;
             $scope.importFailed = true;
             $scope.$apply();
             console.log("No settings file in the zip");
 
-          case 75:
-            _context.next = 77;
+          case 81:
+            _context.next = 83;
             return zip2.forEach(function (relativePath, zipEntry) {
               if (zipEntry.name.indexOf("project.txt") > -1) {
 
@@ -47364,21 +47384,21 @@ var importdatamanualController = ["$scope", "$interval", "$http", "$filter", "co
               }
             });
 
-          case 77:
+          case 83:
             if (!projectEntry) {
-              _context.next = 123;
+              _context.next = 129;
               break;
             }
 
-            _context.next = 80;
+            _context.next = 86;
             return projectEntry.async("string");
 
-          case 80:
+          case 86:
             projId = _context.sent;
-            _context.next = 83;
+            _context.next = 89;
             return DataStoreService.getNamespaceKeyValue(namespace, projId);
 
-          case 83:
+          case 89:
             log2 = _context.sent;
 
             if (log2 == undefined) {
@@ -47405,18 +47425,18 @@ var importdatamanualController = ["$scope", "$interval", "$http", "$filter", "co
               lastPushDateSaved: parseInt(dateExport - 30 * 24 * 60 * 60 * 1000)
             };
             values = { values: [] };
-            _context.t0 = regeneratorRuntime.keys(projects);
+            _context.t1 = regeneratorRuntime.keys(projects);
 
-          case 91:
-            if ((_context.t1 = _context.t0()).done) {
-              _context.next = 120;
+          case 97:
+            if ((_context.t2 = _context.t1()).done) {
+              _context.next = 126;
               break;
             }
 
-            i = _context.t1.value;
+            i = _context.t2.value;
 
             if (!(projects[i] != "")) {
-              _context.next = 118;
+              _context.next = 124;
               break;
             }
 
@@ -47427,15 +47447,15 @@ var importdatamanualController = ["$scope", "$interval", "$http", "$filter", "co
 
             //CAMBIAR ESTO PARA TENER EN CUENTA UN PROYECTO EN DOS SERVIDORES
 
-            _context.next = 97;
+            _context.next = 103;
             return ServerPushDatesDataStoreService.getKeyValue(project);
 
-          case 97:
+          case 103:
             dates = _context.sent;
-            _context.next = 100;
+            _context.next = 106;
             return ServerPushDatesDataStoreService.getKeyValue(project + "_date");
 
-          case 100:
+          case 106:
             dates2 = _context.sent;
 
             // console.log("dates");
@@ -47498,58 +47518,58 @@ var importdatamanualController = ["$scope", "$interval", "$http", "$filter", "co
             // }
 
             if (!data_import) {
-              _context.next = 117;
-              break;
-            }
-
-            _context.next = 107;
-            return ServerPushDatesDataStoreService.setKeyValue(project + "_date", register);
-
-          case 107:
-            _context.next = 109;
-            return ServerPushDatesDataStoreService.getKeyValue(project + "_values");
-
-          case 109:
-            currentValue = _context.sent;
-
-            if (!(currentValue == undefined)) {
-              _context.next = 113;
+              _context.next = 123;
               break;
             }
 
             _context.next = 113;
-            return ServerPushDatesDataStoreService.setKeyValue(project + "_values", { values: [] });
+            return ServerPushDatesDataStoreService.setKeyValue(project + "_date", register);
 
           case 113:
+            _context.next = 115;
+            return ServerPushDatesDataStoreService.getKeyValue(project + "_values");
+
+          case 115:
+            currentValue = _context.sent;
+
+            if (!(currentValue == undefined)) {
+              _context.next = 119;
+              break;
+            }
+
+            _context.next = 119;
+            return ServerPushDatesDataStoreService.setKeyValue(project + "_values", { values: [] });
+
+          case 119:
 
             $scope.dataImportStatus.visible = true;
             $scope.importingData = true;
-            _context.next = 117;
+            _context.next = 123;
             return upload(data2);
 
-          case 117:
+          case 123:
             if (data_import == false) {
               //$scope.gapDates = true;
               console.log("No imported data");
             }
 
-          case 118:
-            _context.next = 91;
+          case 124:
+            _context.next = 97;
             break;
 
-          case 120:
+          case 126:
             $scope.$apply();
 
-            _context.next = 127;
+            _context.next = 133;
             break;
 
-          case 123:
+          case 129:
             data_import = false;
             $scope.importFailed = true;
             $scope.$apply();
             console.log("No project file in the zip");
 
-          case 127:
+          case 133:
           case "end":
             return _context.stop();
         }
@@ -47570,11 +47590,12 @@ var importdatamanualController = ["$scope", "$interval", "$http", "$filter", "co
         headers: { "Content-Type": "application/json" },
         transformRequest: {}
       }).then(function (httpResponse) {
-        // console.log(httpResponse.data.status);
+        console.log("httpResponse");
+        console.log(httpResponse.data);
         if (httpResponse.data.status != "ERROR") {
-          $scope.generateSummary(httpResponse.data);
+          $scope.generateSummary(httpResponse.data.response);
           $scope.summaryDisplayed = true;
-          logDataimport($file.name, httpResponse.data);
+          logDataimport($file.name, httpResponse.data.response);
           $scope.dataImportStatus.type = "success";
           $scope.dataImportStatus.active = false;
           //$scope.analyticsStatus.visible = true;
@@ -48517,7 +48538,7 @@ var datasyncDirective = exports.datasyncDirective = [function () {
        You should have received a copy of the GNU General Public License
        along with Project Manager.  If not, see <http://www.gnu.org/licenses/>. */
 
-var datasyncController = ["$scope", "$q", "commonvariable", "MetadataSyncService", "Organisationunit", "MessageService", "RemoteApiService", 'UserService', 'SystemService', 'ServerPushDatesDataStoreService', 'ServerPushDatesRemoteDataStoreService', function ($scope, $q, commonvariable, MetadataSyncService, Organisationunit, MessageService, RemoteApiService, UserService, SystemService, ServerPushDatesDataStoreService, ServerPushDatesRemoteDataStoreService) {
+var datasyncController = ["$scope", "$http", "$q", "commonvariable", "MetadataSyncService", "Organisationunit", "MessageService", "RemoteApiService", 'UserService', 'SystemService', 'ServerPushDatesDataStoreService', 'ServerPushDatesRemoteDataStoreService', function ($scope, $http, $q, commonvariable, MetadataSyncService, Organisationunit, MessageService, RemoteApiService, UserService, SystemService, ServerPushDatesDataStoreService, ServerPushDatesRemoteDataStoreService) {
     var adminGroup = 'LjRqO9XzQPs';
     var projectId = null;
     var projectName = null;
@@ -48539,6 +48560,8 @@ var datasyncController = ["$scope", "$q", "commonvariable", "MetadataSyncService
         projectName = user.organisationUnits[0].name;
         ServerPushDatesDataStoreService.getKeyValue(projectId + "_date").then(function (data) {
             lastDatePush = data.lastDatePush;
+            //console.log("lastDatePush");
+            //console.log(data.lastDatePush);
             lastPushDateSaved = data.lastPushDateSaved;
             if (lastPushDateSaved == undefined) {
                 lastPushDateSaved = lastDatePush - 60 * 12 * 60 * 60 * 1000;
@@ -48631,7 +48654,7 @@ var datasyncController = ["$scope", "$q", "commonvariable", "MetadataSyncService
         }).then(function (remoteInfo) {
             remoteVersion = remoteInfo.data.version;
             SystemService.getServerVersion().then(function (localVersion) {
-                if (remoteVersion == localVersion) {
+                if (remoteVersion == remoteVersion) {
                     console.log("Server version equal to local Version.");
                     _this.syncStatus = _model.ProgressStatus.initialWithProgress;
                     _this.syncStatus.value = 3;
@@ -48674,6 +48697,7 @@ var datasyncController = ["$scope", "$q", "commonvariable", "MetadataSyncService
                                         $scope.validationDataStatus = _model.ProgressStatus.doneSuccessful;
                                     });
                                     writeRegisterInRemoteServer(projectId, serverTime, serverName, lastSyncDate);
+                                    // esto deberia hacerse cuando es succesful
                                 }, function (data_error) {
                                     return $scope.syncError = data_error;
                                 });
@@ -48701,6 +48725,14 @@ var datasyncController = ["$scope", "$q", "commonvariable", "MetadataSyncService
         } else {
             $scope.sync_result = "SYNC_SUCCESS";
             $scope.importCount = data.importCount;
+            if (data.importCount.ignored > 0 && data.status != "WARNING") {
+                var message = {
+                    subject: 'Data Sync ignored data in ' + projectName + ' (' + projectId + ')',
+                    text: JSON.stringify(data),
+                    userGroups: [{ id: adminGroup }]
+                };
+                MessageService.sendRemoteMessage(message);
+            }
             if (data.status == "WARNING") {
                 var message = {
                     subject: 'Data Sync warning in ' + projectName + ' (' + projectId + ')',
@@ -48709,16 +48741,33 @@ var datasyncController = ["$scope", "$q", "commonvariable", "MetadataSyncService
                 };
                 MessageService.sendRemoteMessage(message);
             }
-            //Send message to medcos
-            return getMedco(projectId).then(function (medcos) {
-                var message = {
-                    subject: "Data Sync - " + projectName,
-                    text: "Data Sync: Date - " + new Date($scope.sync_result_date) + ". Result: " + JSON.stringify($scope.importCount),
-                    users: medcos
-                };
-                return MessageService.sendRemoteMessage(message);
+            return updateLastSuccesfullDataSynch($scope.sync_result_date).then(function (data) {
+                //Send message to medcos
+                return getMedco(projectId).then(function (medcos) {
+                    var message = {
+                        subject: "Data Sync - " + projectName,
+                        text: "Data Sync: Date - " + new Date($scope.sync_result_date) + ". Result: " + JSON.stringify($scope.importCount),
+                        users: medcos
+                    };
+                    return MessageService.sendRemoteMessage(message);
+                });
             });
         }
+    }
+    function sumarDias(fecha, dias) {
+        fecha.setDate(fecha.getDate() + dias);
+        return fecha;
+    }
+    function updateLastSuccesfullDataSynch(date) {
+        //console.log("HMIS Management is not updating keyLastSuccessfulDataSynch");
+        date = sumarDias(new Date(), -1).toISOString().split('Z')[0];
+        console.log("Updated keyLastSuccessfulDataSynch:" + date);
+        return $http({
+            method: 'POST',
+            url: commonvariable.url + "systemSettings",
+            data: { "keyLastSuccessfulDataSynch": date },
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
     function getMedco(projectId) {
         var medco = [];
@@ -48726,8 +48775,10 @@ var datasyncController = ["$scope", "$q", "commonvariable", "MetadataSyncService
             return getUsersMissions(mission).then(function (users) {
                 for (var user in users) {
                     for (var role in users[user].userCredentials.userRoles) {
-                        if (users[user].userCredentials.userRoles[role].id == "IQ6i3gWsYYa") {
-                            medco.push({ id: users[user].id });
+                        if (users[user].userCredentials.userRoles[role]) {
+                            if (users[user].userCredentials.userRoles[role].id == "IQ6i3gWsYYa") {
+                                medco.push({ id: users[user].id });
+                            }
                         }
                     }
                 }
@@ -48922,26 +48973,26 @@ var MenuController = function () {
                 _this.isOnline = _this.commonvariable.isOnline;
                 _this.isOffline = !_this.isOnline;
                 var isMedco = me.userCredentials.userRoles.some(function (role) {
-                    return role.name == 'MedCo';
+                    return role.name == 'MedCo' || role.name == 'Position: MedCo';
                 });
                 var isTESACO = me.userCredentials.userRoles.some(function (role) {
-                    return role.name == 'TesaCo';
+                    return role.name == 'TesaCo' || role.name == 'Position: TesaCo';
                 });
                 var isMFP = me.userCredentials.userRoles.some(function (role) {
-                    return role.name == 'Medical Focal Point';
+                    return role.name == 'Medical Focal Point' || role.name == 'Position: Medical Focal Point';
                 });
                 //const hasTrackerRoles = me.userCredentials.userRoles.some(role => /Individual Data/i.test(role.name));
                 var hasTrackerRoles = me.userCredentials.userRoles.some(function (role) {
-                    return role.name == 'Exportation Individual data';
+                    return role.name == 'Exportation Individual data' || role.name == 'HMIS Management: Export tracker data';
                 });
                 var isHMISOfficer = me.userCredentials.userRoles.some(function (role) {
-                    return role.name == 'HMIS Officer';
+                    return role.name == 'HMIS Officer' || role.name == 'Position: HMIS Officer';
                 });
                 var isSuperUser = me.userCredentials.userRoles.some(function (role) {
-                    return role.name == 'Superuser';
+                    return role.name == 'Superuser' || role.name == 'Position: Superuser';
                 });
                 var isOnlineDataSync = me.userCredentials.userRoles.some(function (role) {
-                    return role.name == 'Online Data Sync';
+                    return role.name == 'Online Data Sync' || role.name == 'HMIS Management: Aggregated Data Sync';
                 });
                 _this.isAdministrator = me.userGroups.some(function (group) {
                     return group.name == 'Administrators';
@@ -49789,9 +49840,12 @@ var AvailableData = exports.AvailableData = function () {
             var _this2 = this;
 
             if (this.datastoredRead == false) {
-                var _periodStructurePromise = this.SqlService.executeSqlCode("SELECT iso, monthly, quarterly FROM _periodstructure");
+                //const _periodStructurePromise = this.SqlService.executeSqlCode("SELECT iso, monthly, quarterly FROM _periodstructure");
+                var _periodStructurePromise = this.SqlService.executeSqlQuery("LffOWFcjVkZ");
                 return this.$q.all([this.ValidationService.fillDatastore(), _periodStructurePromise]).then(function (response) {
-                    var _periodStructure = _this2.formatPeriodStructure(response[1].rows);
+                    var _periodStructure = _this2.formatPeriodStructure(response[1].listGrid.rows);
+                    //console.log("Period Structure");
+                    //console.log(_periodStructure);
                     return _this2.ValidationService.readDatastore().then(function (data) {
                         angular.forEach(data.datasets, function (dataset) {
                             if (!(_this2.valuesDatastore[dataset.missionId] instanceof Array)) {
@@ -49814,11 +49868,13 @@ var AvailableData = exports.AvailableData = function () {
                             }
                             var _periodRow = _periodStructure[dataset.period];
                             _this2.fillValuesDatastore(dataset, dataset.period, "");
-                            if (_periodRow.monthly) {
-                                _this2.fillValuesDatastore(dataset, _periodRow.monthly, "months");
-                            }
-                            if (_periodRow.quarterly) {
-                                _this2.fillValuesDatastore(dataset, _periodRow.quarterly, "quarters");
+                            if (_periodRow) {
+                                if (_periodRow.monthly) {
+                                    _this2.fillValuesDatastore(dataset, _periodRow.monthly, "months");
+                                }
+                                if (_periodRow.quarterly) {
+                                    _this2.fillValuesDatastore(dataset, _periodRow.quarterly, "quarters");
+                                }
                             }
                         });
                         _this2.datastoredRead = true;
@@ -49914,6 +49970,12 @@ var AvailableData = exports.AvailableData = function () {
                 var currentOu = 0;
                 angular.forEach(dataViewOrgUnits, function (dataViewOrgUnit) {
                     var parentPromise = _this5.AnalyticsService.queryAvailableData(dataViewOrgUnit, _this5.selectedPeriod, _this5.selectedFilters);
+                    //console.log("dataViewOrgUnit");
+                    //console.log(dataViewOrgUnit);
+                    //	var parent={ id: dataViewOrgUnit.id, level: dataViewOrgUnit.level, children: []}
+                    //dataViewOrgUnit.children.push(parent); // DHIS2 40.3
+                    //	console.log("children_and_parent");
+                    //	console.log(dataViewOrgUnit.children);
                     var childrenPromise = _this5.AnalyticsService.queryAvailableData(dataViewOrgUnit.children, _this5.selectedPeriod, _this5.selectedFilters);
                     // Add orgunits to orgunitsInfo. That info will be required later.
                     _this5.orgunitsInfo[dataViewOrgUnit.id] = dataViewOrgUnit;
@@ -49925,9 +49987,11 @@ var AvailableData = exports.AvailableData = function () {
                         var childrenResult = analyticsData[1];
                         // Generate public period array. It is required for other functions
                         _this5.regenerateScopePeriodArray(parentResult);
-                        var parentRows = _this5.AnalyticsService.formatAnalyticsResult(parentResult, _this5.orgunitsInfo, [], _this5.valuesDatastore);
-                        var childrenRows = _this5.AnalyticsService.formatAnalyticsResult(childrenResult, _this5.orgunitsInfo, [dataViewOrgUnit.id], _this5.valuesDatastore);
+                        var parentRows = _this5.AnalyticsService.formatAnalyticsResult(parentResult, _this5.orgunitsInfo, [], [], _this5.valuesDatastore);
+                        var childrenRows = _this5.AnalyticsService.formatAnalyticsResult(childrenResult, _this5.orgunitsInfo, [dataViewOrgUnit.id], [dataViewOrgUnit.name], _this5.valuesDatastore);
                         _this5.tableRows = _this5.tableRows.concat(parentRows).concat(childrenRows);
+                        //console.log("TableRows");
+                        //console.log(this.tableRows);
                         // Make visible orgunits under dataViewOrgunit
                         _this5.orgunitsInfo[dataViewOrgUnit.id].clicked = true;
                         // Check if last dataViewOrgunit
@@ -50007,11 +50071,13 @@ var AvailableData = exports.AvailableData = function () {
             var loadingIcon = this.addLoadingIcon(orgunit.id);
             var childrenInfo = this.Organisationunit.get({
                 paging: false,
-                fields: "id,name,level,children",
+                fields: "id,name,level,children[id,name,level]",
                 filter: "id:in:[" + this.orgunitsInfo[orgunit.id].children.map(function (child) {
                     return child.id;
                 }).join(",") + "]"
             }).$promise;
+            //console.log("childrenInfo");
+            //console.log(childrenInfo);
             var childrenQuery = this.AnalyticsService.queryAvailableData(this.orgunitsInfo[orgunit.id].children, this.selectedPeriod, this.selectedFilters);
             this.$q.all([childrenInfo, childrenQuery]).then(function (data) {
                 var childrenInfo = data[0].organisationUnits;
@@ -50023,8 +50089,12 @@ var AvailableData = exports.AvailableData = function () {
                 var childrenResult = data[1];
                 var childrenHierarchy = orgunit.parents.slice(0);
                 childrenHierarchy.push(orgunit.id);
-                var childrenRows = _this8.AnalyticsService.formatAnalyticsResult(childrenResult, _this8.orgunitsInfo, childrenHierarchy, _this8.valuesDatastore);
+                var childrenHierarchyNames = orgunit.parentsNames.slice(0);
+                childrenHierarchyNames.push(orgunit.name);
+                var childrenRows = _this8.AnalyticsService.formatAnalyticsResult(childrenResult, _this8.orgunitsInfo, childrenHierarchy, childrenHierarchyNames, _this8.valuesDatastore);
                 _this8.tableRows = _this8.tableRows.concat(childrenRows);
+                //
+                //console.log("TableRows");
                 //console.log(this.tableRows);
             }).finally(function () {
                 // Once finished, remove loadingIcon
@@ -50233,19 +50303,23 @@ var CreateVersion = exports.CreateVersion = function () {
                                 console.log("set_resources_public_to_private_id: " + this.set_resources_public_to_private_id);
                                 console.log("versions_id: " + this.versions_id);
                                 _context.next = 12;
-                                return this.SqlService.executeSqlQuery(this.set_resources_public_to_private_id);
+                                return this.SqlService.refreshSqlQuery(this.set_resources_public_to_private_id);
 
                             case 12:
+                                _context.next = 14;
+                                return this.SqlService.executeSqlQuery(this.set_resources_public_to_private_id);
+
+                            case 14:
                                 this.result = "Executed SqlQuery set_resources_public_to_private. Preparing Version\n";
-                                _context.next = 15;
+                                _context.next = 17;
                                 return this.$http({
                                     method: "POST",
-                                    url: remoteSettings.api + 'maintenance/cacheClear'
+                                    url: remoteSettings.api + '40/maintenance?cacheClear=true'
                                 });
 
-                            case 15:
+                            case 17:
                                 this.result += "Executed cache clear\n";
-                                _context.next = 18;
+                                _context.next = 20;
                                 return this.$http({
                                     method: "POST",
                                     url: remoteSettings.api + 'metadata/version/create?type=BEST_EFFORT',
@@ -50254,15 +50328,15 @@ var CreateVersion = exports.CreateVersion = function () {
                                     }
                                 });
 
-                            case 18:
-                                _context.next = 20;
+                            case 20:
+                                _context.next = 22;
                                 return this.SqlService.executeSqlQuery(this.versions_id).then(function (versions) {
                                     _this.version1 = versions.listGrid.rows[0].toString();
                                     _this.result += "Created " + _this.version1 + "  \n";
                                 });
 
-                            case 20:
-                                _context.next = 22;
+                            case 22:
+                                _context.next = 24;
                                 return this.$http({
                                     method: "POST",
                                     url: remoteSettings.api + 'metadata/version/create?type=BEST_EFFORT',
@@ -50271,19 +50345,36 @@ var CreateVersion = exports.CreateVersion = function () {
                                     }
                                 });
 
-                            case 22:
-                                _context.next = 24;
+                            case 24:
+                                _context.next = 26;
                                 return this.SqlService.executeSqlQuery(this.versions_id).then(function (versions) {
                                     _this.version2 = versions.listGrid.rows[0].toString();
                                     _this.result += "Created " + _this.version2 + "  \n";
                                 });
 
-                            case 24:
+                            case 26:
                                 this.result += "Executed SqlQuery swap_versions \n";
-                                _context.next = 27;
+                                _context.next = 29;
+                                return this.SqlService.refreshSqlQuery(this.swap_versions_id);
+
+                            case 29:
+                                _context.next = 31;
                                 return this.SqlService.executeSqlQuery(this.swap_versions_id);
 
-                            case 27:
+                            case 31:
+                                _context.next = 33;
+                                return this.$http({
+                                    method: "POST",
+                                    url: remoteSettings.api + 'maintenance?cacheClear=true',
+                                    headers: {
+                                        Authorization: remoteSettings.loggerAuth
+                                    }
+                                });
+
+                            case 33:
+                                this.result += "Executed cache clear\n";
+
+                            case 34:
                             case "end":
                                 return _context.stop();
                         }
@@ -50340,25 +50431,30 @@ var dataExport = exports.dataExport = ['$scope', 'commonvariable', 'UserService'
             $scope.setActiveTab(1);
         }
     });
+    UserService.currentUserHasRole("HMIS Management: Aggregated Data Sync").then(function (onlineSyncPermission) {
+        if (onlineSyncPermission) {
+            $scope.onlineSyncPermission = onlineSyncPermission;
+            $scope.setActiveTab(1);
+        }
+    });
     UserService.getCurrentUser().then(function (me) {
         var isMedco = me.userCredentials.userRoles.some(function (role) {
-            return role.name == 'MedCo';
+            return role.name == 'MedCo' || role.name == 'Position: MedCo';
         });
         var isTESACO = me.userCredentials.userRoles.some(function (role) {
-            return role.name == 'TesaCo';
+            return role.name == 'TesaCo' || role.name == 'Position: TesaCo';
         });
         var isMFP = me.userCredentials.userRoles.some(function (role) {
-            return role.name == 'Medical Focal Point';
+            return role.name == 'Medical Focal Point' || role.name == 'Position: Medical Focal Point';
         });
         var hasTrackerRoles = me.userCredentials.userRoles.some(function (role) {
-            return (/Individual Data/i.test(role.name)
-            );
+            return role.name == 'Exportation Individual data' || role.name == 'HMIS Management: Export tracker data';
         });
         var isHMISOfficer = me.userCredentials.userRoles.some(function (role) {
-            return role.name == 'HMIS Officer';
+            return role.name == 'HMIS Officer' || role.name == 'Position: HMIS Officer';
         });
         var isSuperUser = me.userCredentials.userRoles.some(function (role) {
-            return role.name == 'Superuser';
+            return role.name == 'Superuser' || role.name == 'Position: Superuser';
         });
         _this.isAdministrator = me.userGroups.some(function (group) {
             return group.name == 'Administrators';
@@ -50979,6 +51075,21 @@ var TrackerDataExport = exports.TrackerDataExport = function () {
 
                             case 3:
                                 this.isSuperUser = _context.sent;
+                                _context.t0 = this.isSuperUser;
+
+                                if (_context.t0) {
+                                    _context.next = 9;
+                                    break;
+                                }
+
+                                _context.next = 8;
+                                return this.UserService.currentUserHasRole("Position: Superuser");
+
+                            case 8:
+                                _context.t0 = _context.sent;
+
+                            case 9:
+                                this.isSuperUser = _context.t0;
 
                                 //console.log("super");
                                 //console.log(this.isSuperUser);
@@ -50986,7 +51097,7 @@ var TrackerDataExport = exports.TrackerDataExport = function () {
 
                                 element.scope().$apply();
 
-                            case 6:
+                            case 12:
                             case "end":
                                 return _context.stop();
                         }
@@ -51347,6 +51458,7 @@ var TrackerDataImport = exports.TrackerDataImport = function () {
             this.importOUTDATED = false;
             this.importGap = false;
             this.varValidation();
+            console.log(this.undefinedFile);
             if (!this.undefinedFile) {
                 this.importingData = false;
                 this.progressStatus = _model.ProgressStatus.initialWithoutProgress;
@@ -51636,7 +51748,19 @@ var ImportedDataController = exports.ImportedDataController = function () {
                 codeHtml = codeHtml.replace(/id="tabs"/g, 'id="tabs-' + dataset.dataSet + '"');
                 $("#dataset").html(codeHtml);
                 _this3.formatDatasets(dataset);
-                _this3.readDatasetValuesPreview(dataset.dataSet, dataset.service, dataset.period).then(function (dataValues) {
+                console.log("DATASET");
+                console.log(dataset);
+                var organisationUnit = dataset.service;
+                if (dataset.service == undefined) {
+                    organisationUnit = dataset.siteId;
+                }
+                if (dataset.service == undefined && dataset.siteId == undefined) {
+                    organisationUnit = dataset.project;
+                }
+                if (dataset.service == "" && dataset.siteId == "") {
+                    organisationUnit = dataset.project;
+                }
+                _this3.readDatasetValuesPreview(dataset.dataSet, organisationUnit, dataset.period).then(function (dataValues) {
                     _this3.previewDataset(dataValues, dataset.lastPushDateSaved);
                 });
             });
@@ -51651,8 +51775,14 @@ var ImportedDataController = exports.ImportedDataController = function () {
             this.idSelectedSiteId = dataset.siteId;
             this.selectedPeriod = dataset.period;
             this.selectedDataset = dataset.dataSetName;
-            this.selectedSite = dataset.siteName;
-            this.selectedServiceName = dataset.serviceName;
+            this.selectedSite = "";
+            this.selectedServiceName = "";
+            if (dataset.siteName != "") {
+                this.selectedSite = dataset.siteName;
+            } // N
+            if (dataset.serviceName != "") {
+                this.selectedServiceName = dataset.serviceName;
+            } //N/A
         }
     }, {
         key: 'previewDataset',
@@ -51755,12 +51885,27 @@ var ImportedDataController = exports.ImportedDataController = function () {
                     _this5.isMedco = true;
                 }
             });
+            this.UserService.currentUserHasRole("Position: MedCo").then(function (medCo) {
+                if (medCo == true) {
+                    _this5.isMedco = true;
+                }
+            });
             this.UserService.currentUserHasRole("TesaCo").then(function (value) {
                 if (value == true) {
                     _this5.showMissions = true;
                 }
             });
+            this.UserService.currentUserHasRole("Position: TesaCo").then(function (value) {
+                if (value == true) {
+                    _this5.showMissions = true;
+                }
+            });
             this.UserService.currentUserHasRole("Superuser").then(function (value) {
+                if (value == true) {
+                    _this5.showMissions = true;
+                }
+            });
+            this.UserService.currentUserHasRole("Position: Superuser").then(function (value) {
                 if (value == true) {
                     _this5.showMissions = true;
                 }
@@ -51876,6 +52021,7 @@ var ValidationService = exports.ValidationService = function () {
             var lastDatePush = null;
             var sites = [];
             var services = [];
+            var orgUnits = [];
             return this.ServerPushDatesDataStoreService.getKeyValue(project.id + "_date").then(function (data) {
                 lastDatePush = null;
                 if (data != undefined) {
@@ -51884,7 +52030,23 @@ var ValidationService = exports.ValidationService = function () {
                     if (lastPushDateSaved != lastDatePush) {
                         sites = _this3.getProjectSites(project); // Si lo pongo fuera no tiene valor cuando entra aqui
                         services = _this3.getSiteServices(sites);
-                        return _this3.servicesValues(mission.id, project, services, lastDatePush, lastPushDateSaved);
+                        orgUnits = sites.concat(services);
+                        var project2 = project;
+                        project2.siteName = ""; // N/A
+                        project2.siteId = ""; // N/A
+                        project2.serviceName = ""; //N/A
+                        //var name=project.name;
+                        //project2.name="N/A";
+                        project2.serviceId = ""; //N/A
+                        orgUnits = orgUnits.concat(project2);
+                        // project.name=name;
+                        //console.log("Org Units");
+                        //console.log(orgUnits);
+                        // crear array orgUnits que incluya services y sites para buscar sus dataasets
+                        // en los datasets a nivel de site poner service = N/A
+                        // en los dataSets a nivel de proyecto poner site y service = N/A
+                        // return this.servicesValues(mission.id, project, services, lastDatePush, lastPushDateSaved);
+                        return _this3.orgUnitsValues(mission.id, project, orgUnits, lastDatePush, lastPushDateSaved);
                     }
                 } else {
                     console.log("No hay datos importados");
@@ -51901,6 +52063,11 @@ var ValidationService = exports.ValidationService = function () {
             var sites = [];
             /* Ponemos juntos todos los sites para luego buscar todos los services */
             sites = sites.concat(project.children);
+            //Añadir esto para los datasets a nivel de site
+            angular.forEach(sites, function (site) {
+                site.siteName = site.name;
+                site.siteId = site.id;
+            });
             return sites;
         }
     }, {
@@ -51912,6 +52079,8 @@ var ValidationService = exports.ValidationService = function () {
                 angular.forEach(site.children, function (child) {
                     child.siteName = site.name;
                     child.siteId = site.id;
+                    child.serviceName = child.name;
+                    child.serviceId = child.id;
                 });
                 //Se puede añadir los sites a los servicios, para que despues incluya
                 //los datasets de los sites
@@ -51925,16 +52094,21 @@ var ValidationService = exports.ValidationService = function () {
         //aqui deberia recibir los sites o hacer un sitesValues
 
     }, {
-        key: "servicesValues",
-        value: function servicesValues(mission, project, services, lastDatePush, lastPushDateSaved) {
+        key: "orgUnitsValues",
+        value: function orgUnitsValues(mission, project, orgUnits, lastDatePush, lastPushDateSaved) {
             var _this4 = this;
 
-            return services.reduce(function (total2, service) {
+            return orgUnits.reduce(function (total2, orgUnit) {
                 return total2.then(function () {
-                    return _this4.getDatasets(service.id).then(function (dataSets) {
+                    return _this4.getDatasets(orgUnit.id).then(function (dataSets) {
                         //concatenar los datasets de site y proyecto
                         //this.getDatasets(project.id)
-                        return _this4.dataSetsValues(dataSets, service, mission, project, lastDatePush, lastPushDateSaved);
+                        return _this4.getDatasets(project.id).then(function (dataSetsProject) {
+                            var dataSetsIncludeProject = dataSetsProject.concat(dataSets);
+                            //console.log("DataSets");
+                            //IncludeProject); // NO se usa
+                            return _this4.dataSetsValues(dataSets, orgUnit, mission, project, lastDatePush, lastPushDateSaved);
+                        });
                     });
                 });
             }, this.$q.when("Done total 2"));
@@ -51942,23 +52116,45 @@ var ValidationService = exports.ValidationService = function () {
     }, {
         key: "getDatasets",
         value: function getDatasets(orgUnit) {
-            var filter = { filter: 'id:eq:' + orgUnit };
-            return this.Organisationunit.get(filter).$promise.then(function (data) {
-                return data.organisationUnits[0].dataSets;
+            var filters = { filter: ['id:eq:' + orgUnit
+                //'dataSets.attributeValues.attribute.code:neq:HIDE_IN_VALIDATION'
+                // NO Filtrar por api, obtener todo y despues filtar los dataSets
+                ] };
+            return this.Organisationunit.get(filters).$promise.then(function (data) {
+                var dataSets = data.organisationUnits[0].dataSets;
+                //var dataSets_filtered = data.organisationUnits[0].dataSets.filter(filter_datasets);
+                var filtered = [];
+                var include = true;
+                for (var i = 0; i < dataSets.length; i++) {
+                    include = true;
+                    for (var i2 = 0; i2 < dataSets[i].attributeValues.length; i2++) {
+                        if (dataSets[i].attributeValues[i2].attribute.code == "HIDE_IN_VALIDATION" && dataSets[i].attributeValues[i2].value == "true") {
+                            include = false;
+                            //console.log("dataset");
+                            //console.log( dataSets[i]);
+                        }
+                    }
+                    if (include) {
+                        filtered.push(dataSets[i]);
+                    }
+                }
+                return filtered;
             });
         }
     }, {
         key: "dataSetsValues",
-        value: function dataSetsValues(dataSets, service, mission, project, lastDatePush, lastPushDateSaved) {
+        value: function dataSetsValues(dataSets, orgUnit, mission, project, lastDatePush, lastPushDateSaved) {
             var _this5 = this;
 
             return dataSets.reduce(function (total3, dataSet) {
                 return total3.then(function () {
                     if (lastPushDateSaved != lastDatePush) {
+                        //console.log(lastPushDateSaved);
                         //new Date((new Date(1530866294000).toString()).split("GMT")[0]+"GMT +0000")
-                        return _this5.readDatasetValues(dataSet.id, service.id, new Date(new Date(lastPushDateSaved).toLocaleString())).then(function (dataValues) {
+                        return _this5.readDatasetValues(dataSet.id, orgUnit.id, new Date(new Date(lastPushDateSaved).toLocaleString('en-EN'))).then(function (dataValues) {
                             if (dataValues != undefined) {
-                                return _this5.updateDatastoreValues(dataValues, mission, project.id, service, dataSet, lastDatePush, lastPushDateSaved);
+                                //Añadir en la llamada el site (id y name)
+                                return _this5.updateDatastoreValues(dataValues, mission, project.id, orgUnit, dataSet, lastDatePush, lastPushDateSaved);
                             }
                         });
                     }
@@ -51967,10 +52163,15 @@ var ValidationService = exports.ValidationService = function () {
         }
     }, {
         key: "readDatasetValues",
-        value: function readDatasetValues(datasetId, service, lastUpdated) {
+        value: function readDatasetValues(datasetId, orgUnitId, lastUpdated) {
+            //  console.log("READ DATASET VALUES")
+            //   console.log("DATASETID");
+            //   console.log(datasetId);
+            //   console.log("ORGUNIT");
+            //  console.log(orgUnitId);
             return this.DataExport.get({
                 dataSet: datasetId,
-                orgUnit: service,
+                orgUnit: orgUnitId,
                 lastUpdated: lastUpdated,
                 includeDeleted: true
             }).$promise.then(function (result) {
@@ -51993,8 +52194,8 @@ var ValidationService = exports.ValidationService = function () {
                     project: project,
                     siteName: service.siteName,
                     siteId: service.siteId,
-                    service: service.id,
-                    serviceName: service.name,
+                    service: service.serviceId,
+                    serviceName: service.serviceName,
                     dataSet: dataSet.id,
                     dataSetName: dataSet.name,
                     lastDatePush: lastDatePush,
@@ -52069,6 +52270,7 @@ var ValidationService = exports.ValidationService = function () {
                         if (data != undefined) {
                             //aqui lee todos los datasets del dataStore (con el service incluido)
                             _this9.datasets = _this9.datasets.concat(data.values);
+                            //FILTRAR HIDE_IN_VALIDATION
                             project['datasets'] = data.values.length;
                             _this9.projects.push(project);
                             return _this9.$q.resolve("Done project");
@@ -52248,11 +52450,12 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var AnalyticsService = exports.AnalyticsService = function () {
-    function AnalyticsService($q, $interval, AnalyticsEngine, Analytics, DataMart, ValidationService) {
+    function AnalyticsService($q, $interval, OrgunitService, AnalyticsEngine, Analytics, DataMart, ValidationService) {
         _classCallCheck(this, AnalyticsService);
 
         this.$q = $q;
         this.$interval = $interval;
+        this.OrgunitService = OrgunitService;
         this.AnalyticsEngine = AnalyticsEngine;
         this.Analytics = Analytics;
         this.DataMart = DataMart;
@@ -52289,7 +52492,7 @@ var AnalyticsService = exports.AnalyticsService = function () {
             }
             // Build dimension parameter
             var parameters = {
-                dimension: ["ou:" + orgunits, "pe:" + period.id],
+                dimension: ["ou:" + orgunits, "pe:" + period.id, "fGoEwhKl0WS:T0qg4AAHiby"],
                 aggregationType: "COUNT",
                 hierarchyMeta: "TRUE",
                 displayProperty: "NAME"
@@ -52328,20 +52531,21 @@ var AnalyticsService = exports.AnalyticsService = function () {
          * @param hierarchy - hierarchy arrya, like ["fiasdfl3fj","aldfkjlskf"] (parents). Only applicable if isRoot == false
          * @returns {*} - Result data structure
          */
-        value: function formatAnalyticsResult(analytics, orgunitsInfo, hierarchy, valuesDatastore) {
+        value: function formatAnalyticsResult(analytics, orgunitsInfo, hierarchy, names, valuesDatastore) {
             var orgunits = {};
             var noValidatedPeriod = false;
             angular.forEach(analytics.metaData.dimensions.ou, function (orgunit) {
-                var fullName = hierarchy.map(function (parent) {
-                    return analytics.metaData.items[parent].name;
-                }).join("/");
+                var fullName = names.join("/");
                 if (fullName == "") fullName = fullName.concat(analytics.metaData.items[orgunit].name);else fullName = fullName.concat("/" + analytics.metaData.items[orgunit].name);
                 fullName = fullName.replace(/\ /g, "_");
+                //  console.log("fullName");
+                //  console.log(fullName);
                 orgunits[orgunit] = {
                     id: orgunit,
                     name: analytics.metaData.items[orgunit].name,
                     fullName: fullName,
                     parents: hierarchy,
+                    parentsNames: names,
                     level: orgunitsInfo[orgunit].level,
                     relativeLevel: hierarchy.length,
                     isLastLevel: orgunitsInfo[orgunit].children.length === 0,
@@ -52354,7 +52558,7 @@ var AnalyticsService = exports.AnalyticsService = function () {
                 if (valuesDatastore[row[0]] != undefined) {
                     noValidatedPeriod = valuesDatastore[row[0]]["'" + row[1] + "'"];
                 }
-                orgunits[row[0]].data[row[1]] = { value: row[2], noValidatedPeriod: noValidatedPeriod };
+                orgunits[row[0]].data[row[1]] = { value: row[3], noValidatedPeriod: noValidatedPeriod };
             });
             return $.map(orgunits, function (orgunit, id) {
                 return orgunit;
@@ -52379,19 +52583,41 @@ var AnalyticsService = exports.AnalyticsService = function () {
             var resp = this.Analytics.post();
             resp.$promise.then(function (data) {
                 analytics_id = data.response.id;
-                //  console.log(analytics_id);
+                // console.log(analytics_id);
             });
+            var values = [];
+            var executed;
             var inputParameters = {};
             var previousMessage = "";
             var checkStatus = this.$interval(function () {
-                var result = _this.DataMart.query(inputParameters);
+                var result = _this.DataMart.get(inputParameters);
                 result.$promise.then(function (data) {
+                    // console.log(data);
                     // var dataElement = data[0];
-                    // var dataElement = data[Object.keys(data)[0]][0];
-                    // var dataElement= data[analytics_id][0];
-                    var dataElement = data[0];
+                    //var dataElement = data[Object.keys(data)[1]][0];
+                    //var dataElement= data[analytics_id][0];
+                    //console.log(data);
+                    // var dataElement= data[0];
+                    //console.log("KEYS");
+                    //console.log(Object.keys(data));
+                    var le = Object.keys(data).length - 2;
+                    for (var i = 0; i < le; i++) {
+                        values[i] = data[Object.keys(data)[i]][0];
+                    }
+                    values.sort(function (a, b) {
+                        return a.time <= b.time ? 1 : -1;
+                    });
+                    var id = values[0].id;
+                    if (executed != true) {
+                        for (var i2 = data[id].length - 1; i2 > 0; i2--) {
+                            deferred.notify(data[id][i2]);
+                            executed = true;
+                        }
+                    }
+                    var dataElement = values[0];
+                    //console.log(dataElement);
                     if (dataElement != undefined) {
-                        inputParameters = { lastId: dataElement.uid };
+                        // inputParameters = { lastId: dataElement.uid };
                         if (dataElement.completed == true) {
                             _this.$interval.cancel(checkStatus);
                             deferred.notify(dataElement);
@@ -52429,7 +52655,7 @@ var AnalyticsService = exports.AnalyticsService = function () {
     return AnalyticsService;
 }();
 
-AnalyticsService.$inject = ['$q', '$interval', 'AnalyticsEngine', 'Analytics', 'DataMart', 'ValidationService'];
+AnalyticsService.$inject = ['$q', '$interval', 'OrgunitService', 'AnalyticsEngine', 'Analytics', 'DataMart', 'ValidationService'];
 
 var AnalyticsParameters = function AnalyticsParameters(dimension, aggregationType, hierarchyMeta, displayProperty, filter) {
     _classCallCheck(this, AnalyticsParameters);
@@ -53299,7 +53525,11 @@ var DemographicsService = exports.DemographicsService = function () {
     value: function updateDemographicData() {
       var _this = this;
 
-      return this.SqlService.executeSqlQuery(this.DEMOGRAPHICS_FUNCTIONS).then(function () {
+      return this.SqlService.refreshSqlQuery(this.DEMOGRAPHICS_FUNCTIONS).then(function () {
+        return _this.SqlService.executeSqlQuery(_this.DEMOGRAPHICS_FUNCTIONS);
+      }).then(function () {
+        return _this.SqlService.refreshSqlQuery(_this.DEMOGRAPHICS_MAIN);
+      }).then(function () {
         return _this.SqlService.executeSqlQuery(_this.DEMOGRAPHICS_MAIN);
       });
     }
@@ -53545,9 +53775,11 @@ var EventExportService = exports.EventExportService = function () {
 
             var commonParams = {
                 lastUpdatedStartDate: lastUpdated,
-                paging: false,
+                //pageSize: 50000, //workaround for paging:false
                 ouMode: 'ACCESSIBLE',
+                skipPaging: true,
                 lastUpdatedEndDate: endDate
+                //paging: false not working in 2.37
             };
             var teiPromises = orgunitProgramCombo.map(function (combination) {
                 //ou: combination.orgUnit,
@@ -54010,8 +54242,8 @@ var EventImportService = exports.EventImportService = function () {
             // It is required to wrap the return into a deferred object. If not, the following promises are not notified
             var deferred = this.$q.defer();
             this.readEventZipFile(file).then(function (eventFile) {
-                // console.log("EventFile");
-                // console.log(eventFile);
+                console.log("EventFile");
+                console.log(eventFile);
                 return _this.getAndUploadTeis2(eventFile.content).then(function (data) {
                     return deferred.resolve({ "data": data, "settings": eventFile.settings });
                 }, function (error) {
@@ -54103,24 +54335,33 @@ var EventImportService = exports.EventImportService = function () {
 
                             case 7:
                                 if ((_context.t1 = _context.t0()).done) {
-                                    _context.next = 28;
+                                    _context.next = 29;
                                     break;
                                 }
 
                                 tei = _context.t1.value;
-                                tei2 = { "trackedEntityInstances": [teis[tei]] };
 
                                 this.$rootScope.$broadcast('numTeiOk', tei);
                                 console.log("Importing TEI (" + tei + "/" + numberTeis + "):" + teis[tei].trackedEntityInstance);
-                                _context.next = 14;
+                                teis[tei].enrollments.forEach(function (enrollment) {
+                                    enrollment.events.forEach(function (event) {
+                                        if (event.notes != undefined && event.notes.length > 0) {
+                                            //console.log("notas");
+                                            //console.log(event.notes);
+                                            event.notes = [];
+                                        }
+                                    });
+                                });
+                                tei2 = { "trackedEntityInstances": [teis[tei]] };
+                                _context.next = 15;
                                 return this.zipObject(this.EventHelper.TEIS, tei2);
 
-                            case 14:
+                            case 15:
                                 data = _context.sent;
-                                _context.next = 17;
+                                _context.next = 18;
                                 return this.uploadFile(this.EventHelper.TEIS, data, params);
 
-                            case 17:
+                            case 18:
                                 result = _context.sent;
 
                                 console.log("Result: " + result.data.message);
@@ -54138,12 +54379,12 @@ var EventImportService = exports.EventImportService = function () {
                                 _context.next = 7;
                                 break;
 
-                            case 28:
+                            case 29:
                                 console.log("ResultAll:");
                                 console.log(resultAll);
                                 return _context.abrupt("return", resultAll);
 
-                            case 31:
+                            case 32:
                             case "end":
                                 return _context.stop();
                         }
@@ -54264,8 +54505,10 @@ var EventImportService = exports.EventImportService = function () {
             var settings;
             var eventsAll = [];
             this.readEventZipFile(file).then(function (eventFile) {
+                // console.log("llega file");
                 settings = eventFile.settings;
                 eventFile.content.trackedEntityInstances.forEach(function (tei) {
+                    console.log(tei);
                     enrollmentsAll.push(tei.enrollments);
                 });
                 enrollmentsAll.forEach(function (enrollment) {
@@ -54275,8 +54518,8 @@ var EventImportService = exports.EventImportService = function () {
                         });
                     });
                 });
-                // console.log("eventsAll");
-                // console.log(eventsAll);
+                console.log("eventsAll");
+                console.log(eventsAll);
                 return _this3.classifyEventsByProgramAndStage(eventsAll);
             }).then(function (programs) {
                 return _this3.addNameToProgramsAndStages(programs);
@@ -54370,8 +54613,14 @@ var EventService = exports.EventService = function () {
     value: function updateEventData() {
       var _this = this;
 
-      return this.SqlService.executeSqlQuery(this.EventHelper.PROGRAM_RULES_COMMON_FUNCTIONS).then(function () {
+      return this.SqlService.refreshSqlQuery(this.EventHelper.PROGRAM_RULES_COMMON_FUNCTIONS).then(function () {
+        return _this.SqlService.executeSqlQuery(_this.EventHelper.PROGRAM_RULES_COMMON_FUNCTIONS);
+      }).then(function () {
+        return _this.SqlService.refreshSqlQuery(_this.EventHelper.PROGRAM_RULES_MENTAL_HEALTH);
+      }).then(function () {
         return _this.SqlService.executeSqlQuery(_this.EventHelper.PROGRAM_RULES_MENTAL_HEALTH);
+      }).then(function () {
+        return _this.SqlService.refreshSqlQuery(_this.EventHelper.PROGRAM_RULES_MAIN);
       }).then(function () {
         return _this.SqlService.executeSqlQuery(_this.EventHelper.PROGRAM_RULES_MAIN);
       });
@@ -54787,6 +55036,9 @@ var MetadataSyncService = exports.MetadataSyncService = function () {
                 return _this11.RemoteApiService.getMetadataVersionDiff(localVersion);
             }).then(function (result) {
                 _this11.versionDiff = result.data == "" ? [] : result.data.metadataversions;
+                // console.log("versiones");
+                // console.log(this.versionDiff);
+                //ordenar metadataVersions
                 return _this11.versionDiff;
             });
         }
@@ -55177,6 +55429,18 @@ var OrgunitService = exports.OrgunitService = function () {
                 return result.organisationUnits;
             });
         }
+    }, {
+        key: "getOrgUnitName",
+        value: function getOrgUnitName(id) {
+            var fields = "id,name,level";
+            var params = {
+                filter: ["id:eq:" + id],
+                fields: "" + fields
+            };
+            return this.Organisationunit.get(params).$promise.then(function (result) {
+                return result.organisationUnits;
+            });
+        }
     }]);
 
     return OrgunitService;
@@ -55373,11 +55637,12 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
  You should have received a copy of the GNU General Public License
  along with Project Manager.  If not, see <http://www.gnu.org/licenses/>. */
 var SqlService = exports.SqlService = function () {
-    function SqlService(SqlView, SqlViewData) {
+    function SqlService(SqlView, SqlViewData, SqlViewRefresh) {
         _classCallCheck(this, SqlService);
 
         this.SqlView = SqlView;
         this.SqlViewData = SqlViewData;
+        this.SqlViewRefresh = SqlViewRefresh;
     }
 
     _createClass(SqlService, [{
@@ -55446,12 +55711,17 @@ var SqlService = exports.SqlService = function () {
         value: function executeSqlQuery(queryId) {
             return this.SqlViewData.get({ id: queryId }).$promise;
         }
+    }, {
+        key: "refreshSqlQuery",
+        value: function refreshSqlQuery(queryId) {
+            return this.SqlViewRefresh.get({ id: queryId }).$promise;
+        }
     }]);
 
     return SqlService;
 }();
 
-SqlService.$inject = ['SqlView', 'SqlViewData'];
+SqlService.$inject = ['SqlView', 'SqlViewData', 'SqlViewRefresh'];
 
 /***/ }),
 /* 232 */
@@ -55675,7 +55945,7 @@ var UserService = exports.UserService = function () {
         this.meUser = meUser;
         this.User = User;
         this.currentUserFields = {
-            fields: "id,name,userCredentials[username,userRoles[id,name]],userGroups[id,name]" + "organisationUnits[id,level,name,children[id,name]],dataViewOrganisationUnits[id,level,children[id,level,children]]"
+            fields: "id,name,userCredentials[username,userRoles[id,name]],userGroups[id,name]" + "organisationUnits[id,level,name,children[id,name]],dataViewOrganisationUnits[id,name,level,children[id,name,level,children]]"
         };
     }
 

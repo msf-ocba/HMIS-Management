@@ -40,7 +40,7 @@ dhis2.settings = dhis2.settings || {};
 dhis2.settings.baseUrl = auxBaseUrl;
 
 var isOnline = urlBase.indexOf("msf.es") >= 0;
-//isOnline=true;
+isOnline=false;
 
 // Get and save DHIS version
 var version = "";
@@ -118,9 +118,11 @@ Dhis2Api.factory("Analytics",['$resource','commonvariable', function ($resource,
 }]);
 
 Dhis2Api.factory("DataMart",['$resource','commonvariable', function ($resource,commonvariable) {
-	return $resource( commonvariable.url + "system/tasks/ANALYTICS_TABLE",
-   {lastId:'@lastId'},
-  { get: { method: "GET"} });
+	return $resource( commonvariable.url + "system/tasks/ANALYTICS_TABLE/:id",
+   {id:'@id'},
+  { get: { method: "GET",
+	 isArray: true  
+  } });
 
 }]);
 
@@ -240,7 +242,7 @@ Dhis2Api.factory("User",['$resource','commonvariable', function ($resource,commo
             get: {
                 method: "GET",
                 params: {
-                    fields: ':all,userCredentials[id,name,username,userInfo,created,userRoles]',
+                    fields: ':all,id,name,username,userInfo,created,userRoles',
                     paging: false
                 }
             },
@@ -348,7 +350,7 @@ Dhis2Api.factory("messageConversations", ['$resource', 'commonvariable', functio
 
 
 Dhis2Api.factory("Events",['$resource', 'commonvariable', function ($resource, commonvariable) {
-	return $resource( commonvariable.url + "events", {}, {
+	return $resource( commonvariable.url + "tracker/events", {}, {
 		get: {
 			method: 'GET',
 			params: {skipPaging: true, includeDeleted: true}
@@ -357,14 +359,14 @@ Dhis2Api.factory("Events",['$resource', 'commonvariable', function ($resource, c
 }]);
 
 Dhis2Api.factory("TrackedEntityInstances",['$resource', 'commonvariable', function ($resource, commonvariable) {
-	return $resource( commonvariable.url + "trackedEntityInstances/:uid",
+	return $resource( commonvariable.url + "tracker/trackedEntities/:uid",
 		{
 			fields:'*,attributes[attribute,value,created]'
 		} );
 }]);
 
 Dhis2Api.factory("Enrollments",['$resource', 'commonvariable', function ($resource, commonvariable) {
-	return $resource( commonvariable.url + "enrollments/:uid", {}, {
+	return $resource( commonvariable.url + "tracker/enrollments/:uid", {}, {
 		get: {
 			method: 'GET',
 			params: {skipPaging: true}

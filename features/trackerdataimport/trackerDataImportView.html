@@ -136,7 +136,7 @@
         <h3>{{ 'IMPORT_SUMMARY' | translate }}</h3>
 
 <p>{{ 'IMPORTED_DATA' | translate }} {{'FROM' | translate}} {{ctrl.projectName}} {{'FROM' | translate}} {{ctrl.lastUpdated | date:'dd/MM/yyyy HH:mm'}} {{'TO' | translate}} {{ctrl.endDate | date:'dd/MM/yyyy HH:mm'}}</p> 
-		
+<p ng-show="ctrl.hasErrors">  <strong style="color: red;">{{'MESSAGE' | translate}}: {{'MESSAGE_TEXT' | translate}}</strong></p>	
 <p>{{'UPDATED' | translate}}: {{ctrl.updated}}</p>
 <p>{{'IMPORTED' | translate}}: {{ctrl.imported}}</p>
 <p>{{'DELETED' | translate}}: {{ctrl.deleted}}</p>

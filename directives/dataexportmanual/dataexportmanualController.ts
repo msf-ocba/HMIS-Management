@@ -79,7 +79,7 @@ var dataexportmanualController = ["$scope", "$q", "$filter", "commonvariable", "
 		UserService.getCurrentUser()
 			.then(user => {
 				//console.log(user.userCredentials.username.split("-")[1]);
-				serverName=user.userCredentials.username.split("-")[1];
+				serverName=user.username.split("-")[1];
 				projectId = user.organisationUnits[0].id;
 				projectName = user.organisationUnits[0].name;
 			

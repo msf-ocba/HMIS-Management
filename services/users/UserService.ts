@@ -32,7 +32,7 @@ export class UserService {
     private currentUser: CurrentUser;
     private currentUserTree;
     private currentUserFields = {
-        fields: "id,name,userCredentials[username,userRoles[id,name]],userGroups[id,name]" +
+        fields: "id,name,username,userRoles[id,name],userGroups[id,name]" +
             "organisationUnits[id,level,name,children[id,name]],dataViewOrganisationUnits[id,name,level,children[id,name,level,children]]"
     };
     
@@ -49,7 +49,7 @@ export class UserService {
 
     getCurrentUserTree(): ng.IPromise<CurrentUser> {
         const currentUserFieldsTree = {
-            fields: "id,name,userRoles[id,name],userCredentials[username,userRoles[id,name]],userGroups[id,name]" +
+            fields: "id,name,userRoles[id,name],username,userGroups[id,name]" +
                 "organisationUnits[id,level,name,children[id,name, level,organisationUnitGroups[id], children[id, name,level,organisationUnitGroups[id],children[id, name, level,organisationUnitGroups[id], children[id,name, level,children[id,name]]]]]],organisationUnitGroups[id]," + 
                 "dataViewOrganisationUnits[id,name,level,children[id,name, level,organisationUnitGroups[id], children[id, name,level,organisationUnitGroups[id],children[id, name, level,organisationUnitGroups[id], children[id,name, level,children[id,name]]]]]]"
         };
@@ -64,7 +64,7 @@ export class UserService {
     }
     getCurrentUserProjects(): ng.IPromise<CurrentUser> {
         const currentUserFieldsTree = {
-            fields: "id,name,userRoles[id,name],userCredentials[username,userRoles[id,name]],userGroups[id,name]" +
+            fields: "id,name,userRoles[id,name],username,,userGroups[id,name]" +
                 "organisationUnits[id,level,name,children[id,name, level,organisationUnitGroups[id], children[id, name,level,organisationUnitGroups[id],children[id, name, level,organisationUnitGroups[id], children[id,name, level,children[id,name]]]]]],organisationUnitGroups[id]," + 
                 "dataViewOrganisationUnits[id,name,level,children[id,name, level,organisationUnitGroups[id], children[id, name,level,organisationUnitGroups[id],children[id, name, level,organisationUnitGroups[id], children[id,name, level,children[id,name]]]]]]"
         };
@@ -97,7 +97,7 @@ export class UserService {
      * @param roleName Role name to evaluate
      */
     currentUserHasRole(roleName): ng.IPromise<boolean> {
-        return this.getCurrentUser().then( me => me.userCredentials.userRoles.some( userRole => userRole.name === roleName ));
+        return this.getCurrentUser().then( me => me.userRoles.some( userRole => userRole.name === roleName ));
     }
     
     /**
@@ -115,7 +115,7 @@ export class UserService {
     }
     
     updateUserPassword(user, password) {
-        user.userCredentials.password = password;
+        user.password = password;
         return this.User.put({iduser:user.id}, user).$promise;
     }
     
